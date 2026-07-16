@@ -1915,12 +1915,14 @@ function updateAgeBar() {
    dissolveMin/Max = mult ADN à la dissolution ; boostH = durée du boost ADN.
    --------------------------------------------------------------------------- */
 const RARITIES = [
-  { id:0, name:'Commune',     catchAP:1,     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5, fishSpeed:0.30, interval:0.95, fillBase:0.85, drainBase:0.34, startBase:0.30, jit:0.02 },
-  { id:1, name:'Peu commune', catchAP:2, color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75, fishSpeed:0.46, interval:0.70, fillBase:0.80, drainBase:0.46, startBase:0.25, jit:0.05 },
-  { id:2, name:'Rare',        catchAP:4,        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1, fishSpeed:0.64, interval:0.52, fillBase:0.72, drainBase:0.62, startBase:0.22, jit:0.10 },
-  { id:3, name:'Épique',      catchAP:7,      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5, fishSpeed:0.84, interval:0.40, fillBase:0.64, drainBase:0.78, startBase:0.20, jit:0.16 },
-  { id:4, name:'Légendaire',  catchAP:14,  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5, fishSpeed:1.06, interval:0.31, fillBase:0.56, drainBase:0.95, startBase:0.18, jit:0.22 },
-  { id:5, name:'Mythique',    catchAP:30,    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4, fishSpeed:1.34, interval:0.25, fillBase:0.48, drainBase:1.15, startBase:0.15, jit:0.30 },
+  // fillBase/drainBase recalibrés pour une capture "parfaite" en ~10-60s selon la rareté
+  // (10s Commune -> 60s Mythique) ; castPb = coût en Points Bonus pour lancer la canne sur cette rareté.
+  { id:0, name:'Commune',     catchAP:1,     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5, fishSpeed:0.30, interval:0.95, fillBase:0.0700, drainBase:0.0280, startBase:0.30, jit:0.02, castPb:1 },
+  { id:1, name:'Peu commune', catchAP:2, color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75, fishSpeed:0.46, interval:0.70, fillBase:0.0375, drainBase:0.0216, startBase:0.25, jit:0.05, castPb:2 },
+  { id:2, name:'Rare',        catchAP:4,        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1, fishSpeed:0.64, interval:0.52, fillBase:0.0260, drainBase:0.0224, startBase:0.22, jit:0.10, castPb:3 },
+  { id:3, name:'Épique',      catchAP:7,      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5, fishSpeed:0.84, interval:0.40, fillBase:0.0200, drainBase:0.0244, startBase:0.20, jit:0.16, castPb:4 },
+  { id:4, name:'Légendaire',  catchAP:14,  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5, fishSpeed:1.06, interval:0.31, fillBase:0.0164, drainBase:0.0278, startBase:0.18, jit:0.22, castPb:5 },
+  { id:5, name:'Mythique',    catchAP:30,    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4, fishSpeed:1.34, interval:0.25, fillBase:0.0142, drainBase:0.0339, startBase:0.15, jit:0.30, castPb:6 },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -2460,7 +2462,20 @@ const Pond = (() => {
     if (phase==='idle') {
       let best=null,bd=1e9;
       for (const p of particles){ const dx=(p.x-mx),dy=(p.y-my); const d=dx*dx+dy*dy; const rr=(p.r/(W/dpr))*2.2; if(d<rr*rr && d<bd){bd=d;best=p;} }
-      if (best) startReel(best);
+      if (best) {
+        // Lancer une canne coûte des Points Bonus (💠), gagnés uniquement en validant
+        // ses habitudes réelles (check-in). C'est la seule ressource qui autorise la pêche :
+        // ça limite naturellement le nombre de lancers possibles par jour.
+        const cost = RARITIES[best.rar].castPb || (best.rar + 1);
+        if ((state.pb||0) < cost) {
+          setMsg(`Pas assez de 💠 Points Bonus (${cost} requis pour cette rareté) — valide tes habitudes pour pêcher.`);
+          if (typeof toast==='function') toast(`🎣 Pas assez de 💠 Points Bonus (${cost} requis). Valide tes habitudes du jour pour en gagner.`, 'bad');
+          return;
+        }
+        state.pb -= cost;
+        if (typeof renderHud==='function') renderHud();
+        startReel(best);
+      }
     } else if (phase==='reel') { holding=true; }
   }
   function onUp(){ holding=false; }
@@ -2725,7 +2740,7 @@ const Fishing = (() => {
         </div>
         <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/${CREATURES.length})</button>
       </div>
-      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
+      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge — compte 10 à 60s selon la rareté. Chaque lancer de canne coûte 1 à 6 💠 Points Bonus (selon la rareté visée) : ta seule source de 💠 est le check-in de tes habitudes réelles, donc ta pêche du jour est limitée par tes habitudes validées. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
       <div class="fup-list">`;
     for (const cat of Object.keys(FISH_CATS)) {
       const ups = FISH_UP.filter(u=>u.cat===cat);
