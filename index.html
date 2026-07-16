@@ -982,6 +982,16 @@ async function preloadAssets() {
     const url = await firstLoadable(cand);
     if (url) ASSET_CACHE[slot] = url;
   }));
+  // 2) catalogue dynamique (cdn.json à la racine) — assets ajoutés au fil de l'eau
+  try {
+    const cat = await fetch('cdn.json?v=' + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (cat && typeof cat === 'object') {
+      await Promise.all(Object.entries(cat).map(async ([slot, url]) => {
+        if (url && await loadableUrl(url)) ASSET_CACHE[slot] = url;
+      }));
+    }
+  } catch (e) { /* pas de catalogue */ }
+  // 3) imports du joueur (IndexedDB) — priorité maximale
   try {
     const map = await AssetStore.all();
     Object.assign(ASSET_CACHE, map);
