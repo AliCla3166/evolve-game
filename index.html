@@ -363,6 +363,20 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   #collection-body .col-grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
 }
 
+/* ============================ ASCENSION (Âge suivant) ============================ */
+#ascend-btn{position:absolute;bottom:48px;left:50%;transform:translateX(-50%) scale(.9);
+  display:none;background:linear-gradient(135deg,#c48bff,#ffcf5c);color:#1a0730;font-weight:800;
+  padding:12px 22px;border-radius:999px;font-size:15px;box-shadow:0 6px 30px rgba(196,139,255,.6);
+  animation:ascendPulse 1.8s infinite;z-index:20;white-space:nowrap}
+#ascend-btn.show{display:block}
+@keyframes ascendPulse{0%,100%{box-shadow:0 6px 24px rgba(196,139,255,.5);transform:translateX(-50%) scale(.9)}50%{box-shadow:0 8px 40px rgba(255,207,92,.8);transform:translateX(-50%) scale(.96)}}
+#ascend-btn:active{transform:translateX(-50%) scale(.85)}
+#ascend-text{margin:12px 0 18px;line-height:1.65;font-size:14px;text-align:left}
+.ascend-btns{display:flex;gap:10px;justify-content:flex-end}
+#ascend-cancel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-weight:700;color:var(--muted)}
+#ascend-modal .modal-box.small{text-align:left;width:min(460px,94vw)}
+@media(max-width:820px){ #ascend-btn{bottom:44px;font-size:13px;padding:10px 16px} }
+
 </style>
 </head>
 <body>
@@ -402,6 +416,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <div id="agebar-track"><div id="agebar-fill"></div></div>
       <div id="agebar-label">Âge 1 · Cellule</div>
     </div>
+    <button id="ascend-btn">✨ Évoluer</button>
   </section>
 
   <section id="side">
@@ -483,6 +498,17 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   <div class="modal-box">
     <div class="modal-head"><h2>📖 Collection de créatures</h2><button id="collection-close">✕</button></div>
     <div id="collection-body"></div>
+  </div>
+</div>
+
+<div id="ascend-modal" class="modal">
+  <div class="modal-box small">
+    <div class="modal-head"><h2>🌌 Ascension</h2></div>
+    <p id="ascend-text"></p>
+    <div class="ascend-btns">
+      <button id="ascend-cancel">Pas encore</button>
+      <button id="ascend-confirm" class="btn-primary">✨ Évoluer</button>
+    </div>
   </div>
 </div>
 
@@ -1098,6 +1124,7 @@ function computeMultipliers() {
 
   // Synergie du mini-jeu de pêche (créatures collectées)
   if (typeof window!=='undefined' && window.fishingProdMult) globalMult *= window.fishingProdMult();
+  if (typeof window!=='undefined' && window.prestigeProdMult) globalMult *= window.prestigeProdMult();
   return { globalMult, flatIdle, offlineMult, streakBonus, vital, achCount };
 }
 
@@ -1816,7 +1843,11 @@ function renderAll() {
 function updateAgeBar() {
   const p = ageProgress();
   $('#agebar-fill').style.width = (p * 100).toFixed(1) + '%';
-  $('#agebar-label').textContent = `Âge ${AGE.id} · ${AGE.name} — ${fmt(state.agePoints)}/${TUNING.agePointThreshold} ⭐ vers l'Âge 2`;
+  const aid = state.ageId||1;
+  const aName = (typeof curAge==='function') ? curAge().name : AGE.name;
+  const thr = (typeof ageThreshold==='function') ? ageThreshold() : TUNING.agePointThreshold;
+  const more = (typeof AGES!=='undefined' && aid<AGES.length) ? ` — vers ${nextAge().name}` : '';
+  $('#agebar-label').textContent = `Âge ${aid} · ${aName} — ${fmt(state.agePoints)}/${thr} ⭐${more}`;
 }
 
 </script>
@@ -1836,12 +1867,12 @@ function updateAgeBar() {
    dissolveMin/Max = mult ADN à la dissolution ; boostH = durée du boost ADN.
    --------------------------------------------------------------------------- */
 const RARITIES = [
-  { id:0, name:'Commune',     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5 },
-  { id:1, name:'Peu commune', color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75 },
-  { id:2, name:'Rare',        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1 },
-  { id:3, name:'Épique',      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5 },
-  { id:4, name:'Légendaire',  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5 },
-  { id:5, name:'Mythique',    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4 },
+  { id:0, name:'Commune',     catchAP:1,     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5 },
+  { id:1, name:'Peu commune', catchAP:2, color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75 },
+  { id:2, name:'Rare',        catchAP:4,        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1 },
+  { id:3, name:'Épique',      catchAP:7,      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5 },
+  { id:4, name:'Légendaire',  catchAP:14,  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5 },
+  { id:5, name:'Mythique',    catchAP:30,    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4 },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -1993,7 +2024,7 @@ function fEnsure() {
 function fMods() {
   fEnsure();
   const m = { zone:0, speedMult:1, perfect:0.15, maxParticles:3, spawnMult:1, luck:0, apMult:1, apPerfect:0,
-    comboStep:0, comboMax:5, dissolveMult:1, dissolveDur:1, sellMult:1, doubleChance:0, tripleChance:0,
+    comboStep:0.02, comboMax:5, dissolveMult:1, dissolveDur:1, sellMult:1, doubleChance:0, tripleChance:0,
     rarityFloor:0, life:0, partSize:0, forgive:0, autoRate:1, autoQual:0, refine:0,
     steady:false, beacon:false, bulk:false, comboKeep:false, comboStart:false, frenzy:false,
     net:false, auto:false, autoDissolve:false, autoCombo:false, synergy:false, apIdle:false, dnaZone:false, collector:false, prisme:false };
@@ -2078,13 +2109,14 @@ function registerCatch(creature, perfect) {
   state.fishing.combo++;
   if (state.fishing.combo > state.fishing.bestCombo) state.fishing.bestCombo = state.fishing.combo;
   if (m.frenzy && state.fishing.combo === 10) state.fishing.frenzyEnd = Date.now() + 20000;
-  // AP
-  let ap = 1;
-  if (perfect) { state.fishing.perfect++; ap += m.apPerfect; }
-  let comboMul = 1 + Math.min(state.fishing.comboMax ?? m.comboMax, state.fishing.combo) * m.comboStep;
+  // AP : base selon la rareté (× combo × multiplicateurs × prestige)
+  let ap = (RARITIES[creature.r].catchAP || 1);
+  if (perfect) { state.fishing.perfect++; ap += m.apPerfect + Math.ceil(ap*0.5); }
+  let comboMul = 1 + Math.min(m.comboMax, state.fishing.combo) * m.comboStep;
   if (m.comboStart && comboMul < 1.2) comboMul = 1.2;
   ap *= comboMul * m.apMult;
   if (state.fishing.frenzyEnd > Date.now()) ap *= 2;
+  if (typeof window!=='undefined' && window.prestigeProdMult) ap *= window.prestigeProdMult();
   ap = Math.max(1, Math.round(ap));
   addAgePoints(ap);
   return { ap, perfect, comboMul };
@@ -2217,7 +2249,7 @@ function drawMainCreature(ctx, w, h, t) {
   }
   // Procédural : morph cellule -> poisson -> alien selon p
   ctx.save(); ctx.translate(cx + Math.sin(t*0.8)*R*0.06, cy + Math.sin(t*1.1)*R*0.03);
-  const hue = 168 + p * 4;                 // vire vers le violet en fin
+  const hue = ((typeof curAge==='function'?curAge().hue:168)) + p * 4; // teinte par âge, vire en fin
   const glow = ctx.createRadialGradient(0,0,R*0.2,0,0,R*1.7);
   glow.addColorStop(0,`hsla(${hue},90%,70%,0.35)`); glow.addColorStop(1,`hsla(${hue},90%,70%,0)`);
   ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0,0,R*1.7,0,7); ctx.fill();
@@ -2560,8 +2592,8 @@ const Fishing = (() => {
     const p = currentPalier();
     if (p > (state.fishing.lastPalier||0)) {
       state.fishing.lastPalier = p;
-      const info = PALIERS[p-1];
-      if (info) toast(`🧬 Palier ${p}/20 — <b>${info.name}</b> !`, 'good');
+      const nm = (typeof palierName==='function') ? palierName(p) : (PALIERS[p-1]&&PALIERS[p-1].name);
+      if (nm) toast(`🧬 Palier ${p}/20 — <b>${nm}</b> !`, 'good');
       Diorama && Diorama.pulseNow && Diorama.pulseNow();
     }
     renderMare();
@@ -2672,8 +2704,137 @@ window.Fishing = Fishing;
     creature_protobacterie: ['assets/creature_protobacterie.png', CDNf+'hf_20260716_095659_3bfa732f-7a77-4a76-b5b1-c1927f79fb54.png'],
     creature_meduse:        ['assets/creature_meduse.png',        CDNf+'hf_20260716_095706_0d9b3e30-5688-418a-9024-ad448072b717.png'],
     creature_leviathan:     ['assets/creature_leviathan.png',     CDNf+'hf_20260716_095707_e92a3205-9f64-46c0-b308-51628a2fc177.png'],
+    creature_tardigrade:    ['assets/creature_tardigrade.png',    CDNf+'hf_20260716_102240_8b541643-b8f1-4689-a137-a3e379fac766.png'],
+    creature_radiolaire:    ['assets/creature_radiolaire.png',    CDNf+'hf_20260716_102241_9f2431e1-c96e-44b4-8d82-74651242a49b.png'],
+    creature_ctenophore:    ['assets/creature_ctenophore.png',    CDNf+'hf_20260716_102242_56e2dfbf-6a62-4511-b290-2afc0b659552.png'],
+    creature_kraken:        ['assets/creature_kraken.png',        CDNf+'hf_20260716_102243_6af46d98-7761-4533-baf3-f3faaab081f7.png'],
+    creature_oeilflagelle:  ['assets/creature_oeilflagelle.png',  CDNf+'hf_20260716_102245_37a3426e-c787-4910-9ef6-a5590c2a3a74.png'],
+    creature_cristalvivant: ['assets/creature_cristalvivant.png', CDNf+'hf_20260716_102252_05a5987e-c3df-4733-ba5c-50b5162d6e82.png'],
+    creature_phenix:        ['assets/creature_phenix.png',        CDNf+'hf_20260716_102255_7f824081-011f-4e05-b1ab-e68d320fc75a.png'],
+    creature_genesis:       ['assets/creature_genesis.png',       CDNf+'hf_20260716_102256_be80d1d8-9b16-4b05-880d-bfded2991261.png'],
+    palier_5:  ['assets/palier_5.png',  CDNf+'hf_20260716_102258_8f3d9970-f3e7-4f50-88f3-43fe80663a49.png'],
+    palier_15: ['assets/palier_15.png', CDNf+'hf_20260716_102300_3062e855-2eb0-4e47-9338-77543a6a6428.png'],
   });
 })();
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — age.js
+   Système d'ÂGES + Ascension (soft prestige). Atteindre 100 ⭐ permet
+   d'évoluer vers l'âge suivant : on garde la collection, les succès, les graines
+   et un multiplicateur permanent (Essence), mais la "run" (ADN, générateurs,
+   technos, améliorations de pêche, Points d'Âge) se relance — plus puissante.
+   Principe du cahier des charges : on ne change pas les règles, seulement
+   l'habillage (noms, palette, arc de paliers).
+   ============================================================================ */
+
+const AGES = [
+  { id:1, name:'Cellule', subtitle:'De la matière à la première étincelle', hue:168, resIcon:'🧬', resName:'ADN',
+    paliers:(typeof PALIERS!=='undefined'?PALIERS.map(p=>p.name):[]) },
+  { id:2, name:'Animal', subtitle:'La vie sort de l’eau et se déplace', hue:150, resIcon:'🍖', resName:'Nourriture',
+    paliers:['Alevin','Banc de poissons','Poisson pulmoné','Sortie des eaux','Amphibien',
+             'Têtard géant','Reptile primitif','Petit saurien','Créature à écailles','Prédateur agile',
+             'Créature à sang chaud','Petit mammifère','Créature nocturne','Chasseur social','Créature à fourrure',
+             'Grand prédateur','Créature rusée','Primate','Créature bipède','Être conscient'] },
+  { id:3, name:'Tribu', subtitle:'Le feu, les outils, les premiers rites', hue:32, resIcon:'🔥', resName:'Culture',
+    paliers:['Cueilleur','Chasseur','Porteur de feu','Tailleur de silex','Bâtisseur d’abri',
+             'Artisan','Guérisseur','Conteur','Chaman','Chef de clan',
+             'Danseur rituel','Peintre de grottes','Forgeron d’os','Gardien du feu','Sage',
+             'Bâtisseur de totem','Prophète','Fondateur','Meneur','Esprit ancestral'] },
+];
+function curAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1)-1)]; }
+function nextAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1))]; }
+function palierName(n) { const a=curAge(); return (a.paliers[n-1]) || ('Palier '+n); }
+function ageThreshold() { return (typeof TUNING!=='undefined' ? TUNING.agePointThreshold : 100); }
+function canAscend() { return (state.agePoints||0) >= ageThreshold(); }
+
+function ensureMeta() {
+  if (!state.meta) state.meta = { ascendMult:1, agesReached:1 };
+}
+function prestigeProdMult() { ensureMeta(); return state.meta.ascendMult || 1; }
+window.prestigeProdMult = prestigeProdMult;
+
+/* ---------- Ascension ---------- */
+function ascend() {
+  if (!canAscend()) return false;
+  ensureMeta();
+  const from = state.ageId || 1;
+  const to = from + 1;
+  // Multiplicateur permanent : ×2.2 par âge (la re-montée est bien plus rapide)
+  state.meta.ascendMult = (state.meta.ascendMult || 1) * 2.2;
+  state.meta.agesReached = Math.max(state.meta.agesReached||1, to);
+  state.ageId = to;
+
+  // --- RESET de run (garde la couche persistante) ---
+  state.dna = 0;
+  state.generators = {};
+  state.techs = {};
+  state.unlockedGens = {};
+  state.unlockedMinigames = {};
+  state.agePoints = 0;
+  state.boosts = [];
+  state.perfectBoostEndsAt = 0;
+  state.fishUp = {};                      // on reconstruit l'arbre de pêche (bible)
+  if (state.fishing) { state.fishing.combo = 0; state.fishing.lastPalier = 0; state.fishing.frenzyEnd = 0; }
+  // CONSERVÉ : collection, seeds, pb, achievements, meta, stats, fishing.dissolved/disRarityMax,
+  //            streak/check-in — la vie continue, plus forte.
+  state.lastTick = Date.now();
+  return { from, to, mult: state.meta.ascendMult };
+}
+
+/* ============================================================================
+   UI Ascension
+   ============================================================================ */
+const Age = (() => {
+  function init() {
+    ensureMeta();
+    const btn = document.getElementById('ascend-btn');
+    if (btn) btn.addEventListener('click', openCeremony);
+    const conf = document.getElementById('ascend-confirm');
+    if (conf) conf.addEventListener('click', doAscend);
+    const cancel = document.getElementById('ascend-cancel');
+    if (cancel) cancel.addEventListener('click', () => document.getElementById('ascend-modal').classList.remove('visible'));
+    refresh();
+    setInterval(refresh, 1000);
+  }
+  function refresh() {
+    const btn = document.getElementById('ascend-btn');
+    if (!btn) return;
+    const ready = canAscend() && (state.ageId||1) < AGES.length;
+    btn.classList.toggle('show', ready);
+    if (ready) btn.textContent = `✨ Évoluer vers l’Âge ${(state.ageId||1)+1} · ${nextAge().name}`;
+    // libellés d'âge
+    const hudAge = document.querySelector('#hud .hud-age');
+    if (hudAge) hudAge.textContent = `Âge ${state.ageId||1} · ${curAge().name}`;
+  }
+  function openCeremony() {
+    if (!canAscend()) return;
+    const na = nextAge();
+    const nextMult = (state.meta.ascendMult||1) * 2.2;
+    document.getElementById('ascend-text').innerHTML =
+      `Ta civilisation atteint son apogée. En évoluant vers l’<b>Âge ${(state.ageId||1)+1} — ${na.name}</b> :<br><br>` +
+      `✅ Tu <b>conserves</b> : ta collection de créatures, tes succès, tes 🌱 graines, et un multiplicateur permanent.<br>` +
+      `🔄 Tu <b>relances</b> : ADN, organites, recherches et améliorations de pêche — mais la remontée sera bien plus rapide.<br><br>` +
+      `🌌 <b>Essence évolutive</b> : ×${(state.meta.ascendMult||1).toFixed(1)} → <b>×${nextMult.toFixed(1)}</b> (production & Points d’Âge).<br>` +
+      `<i>${na.subtitle}.</i>`;
+    document.getElementById('ascend-modal').classList.add('visible');
+  }
+  function doAscend() {
+    const r = ascend();
+    document.getElementById('ascend-modal').classList.remove('visible');
+    if (!r) return;
+    if (typeof Diorama!=='undefined' && Diorama.pulseNow) Diorama.pulseNow();
+    if (typeof toast==='function') toast(`🌌 <b>Ascension !</b> Âge ${r.to} · ${curAge().name} — Essence ×${r.mult.toFixed(1)}`, 'good');
+    if (typeof renderAll==='function') renderAll();
+    if (typeof renderHud==='function') renderHud();
+    if (window.Fishing) { Fishing.renderMare(); Fishing.renderCollection(); }
+    refresh();
+    if (typeof saveGame==='function') saveGame();
+  }
+  return { init, refresh };
+})();
+window.Age = Age;
 
 </script>
 <script>
@@ -2918,6 +3079,7 @@ async function boot() {
   bindUI();
   Dev.bind();
   if (window.Fishing) Fishing.init();
+  if (window.Age) Age.init();
   renderAll();
   renderCheckin();
   checkAchievements();
