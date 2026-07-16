@@ -308,6 +308,61 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   #stage{top:calc(58px + env(safe-area-inset-top))}
 }
 
+/* ============================ MINI-JEU DE PÊCHE ============================ */
+/* Panneau Mare */
+.mare-hero{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.mare-play{background:linear-gradient(135deg,var(--accent),#2bbfa0);color:#04211c;font-weight:800;padding:14px;border-radius:14px;font-size:16px;box-shadow:0 6px 22px rgba(62,230,196,.3)}
+.mare-play:active{transform:scale(.98)}
+.mare-stats{text-align:center;font-size:13px;color:var(--txt)}
+.mare-stats b{color:var(--ap)}
+.mare-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.mare-collec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;font-weight:700;color:var(--accent2)}
+.mare-note{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;background:rgba(62,230,196,.05);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.fup-cat{font-weight:800;font-size:12px;letter-spacing:.03em;color:var(--accent);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.fup{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:9px 10px;margin-bottom:6px}
+.fup.aff{border-color:rgba(62,230,196,.4)}
+.fup.maxed{opacity:.6}
+.fup-main{flex:1;min-width:0}
+.fup-name{font-weight:700;font-size:13px}
+.fup-lvl{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-left:4px}
+.fup-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.fup-req{color:#ffb27a;font-size:10px;display:inline-block}
+.fup-buy{background:rgba(62,230,196,.12);border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-weight:700;font-size:12px;color:var(--accent2);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.fup-buy[disabled]{opacity:.4;cursor:not-allowed}
+.fup-max{font-size:12px;color:var(--accent);font-weight:700}
+
+/* Collection */
+#collection-body .col-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:12px}
+.col-cell{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;cursor:pointer;transition:transform .1s}
+.col-cell.got{border-color:var(--rc,var(--line))}
+.col-cell.locked{opacity:.45}
+.col-cell.sel{outline:2px solid var(--accent);transform:translateY(-2px)}
+.col-th{width:52px;height:52px;object-fit:contain}
+.col-lock{width:52px;height:52px;display:grid;place-items:center;font-size:26px;color:var(--muted)}
+.col-name{font-size:11px;font-weight:700;margin-top:4px;line-height:1.1}
+.col-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.col-rar{font-weight:700}
+.col-actions{position:sticky;bottom:0;background:var(--card2);border-top:1px solid var(--line);padding:10px 0 2px}
+.col-hint{font-size:12px;color:var(--muted);text-align:center;padding:6px}
+.col-sel{font-size:13px;text-align:center;margin-bottom:8px}
+.col-btns{display:flex;gap:8px}
+.col-btns button{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 6px;font-weight:700;font-size:12px;line-height:1.3}
+.col-btns button small{font-weight:500;color:var(--muted);font-size:10px}
+.col-btns button:active{transform:scale(.97)}
+
+/* Pond (mini-jeu plein écran) */
+.modal.fullscreen{padding:0}
+.pond-box{width:100vw;height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.pond-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(3,12,20,.7)}
+.pond-head h2{font-size:17px}
+#close-pond{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:18px}
+.pond-canvas-wrap{flex:1;position:relative;min-height:0}
+#pond-canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+
+@media(max-width:820px){
+  #collection-body .col-grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+}
+
 </style>
 </head>
 <body>
@@ -352,6 +407,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   <section id="side">
     <nav id="nav">
       <button class="nav-btn active" data-panel="generators">🧫 Organites</button>
+      <button class="nav-btn" data-panel="fishing">🎣 Mare</button>
       <button class="nav-btn" data-panel="techs">🔬 Recherche</button>
       <button class="nav-btn" data-panel="shop">💠 Boutique</button>
       <button class="nav-btn" data-panel="minigames">🎮 Mini-jeux</button>
@@ -368,6 +424,11 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
           </select>
         </div>
         <div id="panel-generators"></div>
+      </div>
+
+      <div class="panel" id="panel-fishing-wrap">
+        <div class="panel-head"><h2>🎣 La Mare primordiale</h2></div>
+        <div id="panel-fishing"></div>
       </div>
 
       <div class="panel" id="panel-techs-wrap">
@@ -406,6 +467,22 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <div class="modal-head"><h2>🌙 Pendant ton absence</h2></div>
     <p id="offline-text"></p>
     <button id="offline-ok" class="btn-primary">Récolter</button>
+  </div>
+</div>
+
+<!-- Modale Pêche (pond plein écran) -->
+<div id="fishing-modal" class="modal fullscreen">
+  <div class="pond-box">
+    <div class="pond-head"><h2>🎣 La Mare</h2><button id="close-pond">✕</button></div>
+    <div class="pond-canvas-wrap"><canvas id="pond-canvas"></canvas></div>
+  </div>
+</div>
+
+<!-- Modale Collection -->
+<div id="collection-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2>📖 Collection de créatures</h2><button id="collection-close">✕</button></div>
+    <div id="collection-body"></div>
   </div>
 </div>
 
@@ -1019,6 +1096,8 @@ function computeMultipliers() {
   // Jour parfait
   if (state.perfectBoostEndsAt > now) globalMult *= TUNING.perfectDayMult;
 
+  // Synergie du mini-jeu de pêche (créatures collectées)
+  if (typeof window!=='undefined' && window.fishingProdMult) globalMult *= window.fishingProdMult();
   return { globalMult, flatIdle, offlineMult, streakBonus, vital, achCount };
 }
 
@@ -1452,8 +1531,10 @@ const Diorama = (() => {
     }
     ctx.restore();
 
-    // avatar cellule au centre
-    drawCell();
+    // avatar : créature principale évolutive (20 paliers) sinon fallback cellule
+    if (window.drawMainCreature) window.drawMainCreature(ctx, w, h, t); else drawCell();
+    // créatures collectées qui nagent
+    if (window.drawSwimmers) window.drawSwimmers(ctx, w, h, t);
 
     // pulsation de récolte
     if (pulse > 0) {
@@ -1741,6 +1822,862 @@ function updateAgeBar() {
 </script>
 <script>
 /* ============================================================================
+   EVOLVE — fishing.js
+   Mini-jeu de pêche (La Mare) : repérage de paillettes colorées + barre de
+   timing (façon Stardew). Chaque capture = créature (collection) + Points d'Âge.
+   Collection : dissoudre (boost ADN) ou vendre (AP). 50 améliorations. 20 paliers.
+   Tout est autonome ici ; s'accroche au moteur via l'objet global `state`.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   RARETÉS (6) — la couleur de la paillette indique la rareté
+   weight = poids de spawn ; zone = taille de la zone verte (fraction de barre) ;
+   speed = vitesse du curseur ; sellAP = AP de base à la vente ;
+   dissolveMin/Max = mult ADN à la dissolution ; boostH = durée du boost ADN.
+   --------------------------------------------------------------------------- */
+const RARITIES = [
+  { id:0, name:'Commune',     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5 },
+  { id:1, name:'Peu commune', color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75 },
+  { id:2, name:'Rare',        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1 },
+  { id:3, name:'Épique',      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5 },
+  { id:4, name:'Légendaire',  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5 },
+  { id:5, name:'Mythique',    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4 },
+];
+
+/* ---------------------------------------------------------------------------
+   CRÉATURES (30) — microorganismes collectionnables
+   r = index rareté ; hue procédural ; shape = forme dessinée ; val = multiplicateur
+   de valeur propre à la créature (vente/dissolution).
+   --------------------------------------------------------------------------- */
+const CREATURES = [
+  // Communes (8)
+  { id:'protobacterie', name:'Protobactérie',   r:0, hue:168, shape:'rod',    val:1.0 },
+  { id:'diatomee',      name:'Diatomée',        r:0, hue:186, shape:'crystal',val:1.05 },
+  { id:'amibe',         name:'Amibe',           r:0, hue:150, shape:'blob',   val:1.0 },
+  { id:'paramecie',     name:'Paramécie',       r:0, hue:160, shape:'cilia',  val:1.1 },
+  { id:'cyanobacterie', name:'Cyanobactérie',   r:0, hue:174, shape:'rod',    val:1.0 },
+  { id:'volvox',        name:'Volvox',          r:0, hue:140, shape:'sphere', val:1.15 },
+  { id:'euglene',       name:'Euglène',         r:0, hue:120, shape:'worm',   val:1.05 },
+  { id:'rotifere',      name:'Rotifère',        r:0, hue:178, shape:'cilia',  val:1.1 },
+  // Peu communes (7)
+  { id:'tardigrade',    name:'Tardigrade',      r:1, hue:38,  shape:'beast',  val:1.3 },
+  { id:'radiolaire',    name:'Radiolaire',      r:1, hue:200, shape:'crystal',val:1.2 },
+  { id:'foraminifere',  name:'Foraminifère',    r:1, hue:44,  shape:'spiral', val:1.15 },
+  { id:'dinoflagelle',  name:'Dinoflagellé',    r:1, hue:220, shape:'worm',   val:1.25 },
+  { id:'choanoflagelle',name:'Choanoflagellé',  r:1, hue:320, shape:'cilia',  val:1.2 },
+  { id:'stentor',       name:'Stentor',         r:1, hue:165, shape:'blob',   val:1.15 },
+  { id:'vorticelle',    name:'Vorticelle',      r:1, hue:150, shape:'cilia',  val:1.2 },
+  // Rares (6)
+  { id:'meduse',        name:'Méduse primitive',r:2, hue:210, shape:'jelly',  val:1.5 },
+  { id:'ctenophore',    name:'Cténophore',      r:2, hue:280, shape:'jelly',  val:1.6 },
+  { id:'placozoaire',   name:'Placozoaire',     r:2, hue:190, shape:'blob',   val:1.4 },
+  { id:'kraken',        name:'Kraken larvaire', r:2, hue:230, shape:'beast',  val:1.7 },
+  { id:'pompei',        name:'Ver de Pompéi',   r:2, hue:0,   shape:'worm',   val:1.55 },
+  { id:'nemate',        name:'Némate lumineux', r:2, hue:130, shape:'worm',   val:1.5 },
+  // Épiques (5)
+  { id:'oeilflagelle',  name:'Œil-flagelle',    r:3, hue:275, shape:'eye',    val:2.0 },
+  { id:'bioluminaire',  name:'Bio-luminaire',   r:3, hue:190, shape:'jelly',  val:2.1 },
+  { id:'symbiote',      name:'Symbiote spiralé',r:3, hue:310, shape:'spiral', val:2.2 },
+  { id:'cristalvivant', name:'Cristal vivant',  r:3, hue:200, shape:'crystal',val:2.3 },
+  { id:'nephile',       name:'Néphile abyssale',r:3, hue:265, shape:'beast',  val:2.1 },
+  // Légendaires (3)
+  { id:'leviathan',     name:'Léviathan cellulaire', r:4, hue:44, shape:'beast', val:3.2 },
+  { id:'phenix',        name:'Phénix planctonique',  r:4, hue:28, shape:'jelly', val:3.4 },
+  { id:'oracle',        name:'Oracle unicellulaire', r:4, hue:48, shape:'eye',   val:3.6 },
+  // Mythique (1)
+  { id:'genesis',       name:'Genesis — Le Premier Vivant', r:5, hue:300, shape:'star', val:6.0 },
+];
+
+/* ---------------------------------------------------------------------------
+   PALIERS (20) — évolution visuelle de la créature principale, tous les 5 AP.
+   De la cellule au poisson extraterrestre. Slot d'asset : palier_N.
+   --------------------------------------------------------------------------- */
+const PALIERS = [
+  { n:1,  ap:5,   name:'Protocellule' },
+  { n:2,  ap:10,  name:'Cellule nucléée' },
+  { n:3,  ap:15,  name:'Colonie ciliée' },
+  { n:4,  ap:20,  name:'Blastula' },
+  { n:5,  ap:25,  name:'Larve segmentée' },
+  { n:6,  ap:30,  name:'Proto-invertébré' },
+  { n:7,  ap:35,  name:'Ver nageur' },
+  { n:8,  ap:40,  name:'Créature à branchies' },
+  { n:9,  ap:45,  name:'Poisson sans mâchoire' },
+  { n:10, ap:50,  name:'Poisson cartilagineux' },
+  { n:11, ap:55,  name:'Poisson à nageoires lobées' },
+  { n:12, ap:60,  name:'Poisson bioluminescent' },
+  { n:13, ap:65,  name:'Poisson abyssal' },
+  { n:14, ap:70,  name:'Poisson cuirassé' },
+  { n:15, ap:75,  name:'Poisson cristallin' },
+  { n:16, ap:80,  name:'Poisson énergétique' },
+  { n:17, ap:85,  name:'Poisson-esprit' },
+  { n:18, ap:90,  name:'Poisson exotique' },
+  { n:19, ap:95,  name:'Poisson stellaire' },
+  { n:20, ap:100, name:'Poisson extraterrestre' },
+];
+function currentPalier() { return Math.max(0, Math.min(20, Math.floor((state.agePoints||0) / 5))); }
+
+/* ---------------------------------------------------------------------------
+   50 AMÉLIORATIONS — inspirées des meilleurs idle (accuracy, luck, combo,
+   automation, synergies). fx.kind : add | mul | flag | max. req = condition
+   (dissolved: n créatures dissoutes ; disRarity: avoir dissous une rareté ≥).
+   --------------------------------------------------------------------------- */
+const FISH_UP = [
+  // — Précision / skill —
+  { id:'zone1', cat:'skill', name:'Ligne tendue',        desc:'Zone verte +4% par niveau.', base:60,   mul:1.5, max:10, fx:{f:'zone',k:'add',v:0.04} },
+  { id:'speed1',cat:'skill', name:'Main sûre',           desc:'Curseur -6% de vitesse.',    base:80,   mul:1.5, max:10, fx:{f:'speedMult',k:'mul',v:0.94} },
+  { id:'perf1', cat:'skill', name:'Œil de lynx',         desc:'Fenêtre parfaite +12%.',     base:200,  mul:1.7, max:6,  fx:{f:'perfect',k:'add',v:0.12} },
+  { id:'forgive',cat:'skill',name:'Seconde chance',      desc:'+1 tentative en cas de raté.',base:500, mul:3,   max:3,  fx:{f:'forgive',k:'add',v:1} },
+  { id:'steady',cat:'skill', name:'Stabilisateur',       desc:'Le curseur ralentit près du centre.', base:3000, mul:1, max:1, fx:{f:'steady',k:'flag',v:1} },
+  { id:'wide',  cat:'skill', name:'Barre élargie',       desc:'Zone verte +8% (unique).',   base:12000,mul:1,   max:1,  fx:{f:'zone',k:'add',v:0.08} },
+  { id:'zone2', cat:'skill', name:'Ligne renforcée',     desc:'Zone verte +6%.', base:4000, mul:1.6, max:8, req:{dissolved:10}, fx:{f:'zone',k:'add',v:0.06} },
+  { id:'speed2',cat:'skill', name:'Poignet d’acier',     desc:'Curseur -8%.',    base:6000, mul:1.6, max:8, req:{dissolved:15}, fx:{f:'speedMult',k:'mul',v:0.92} },
+  // — Spawn / chance —
+  { id:'part1', cat:'luck',  name:'Bancs plus fournis',  desc:'+1 paillette à l’écran.',    base:120,  mul:1.8, max:8,  fx:{f:'maxParticles',k:'add',v:1} },
+  { id:'spawn1',cat:'luck',  name:'Eaux fertiles',       desc:'Apparition +10% plus rapide.',base:150, mul:1.5, max:10, fx:{f:'spawnMult',k:'mul',v:0.90} },
+  { id:'life',  cat:'luck',  name:'Rémanence',           desc:'Les paillettes restent +0.6s.',base:300, mul:1.7, max:5,  fx:{f:'life',k:'add',v:0.6} },
+  { id:'luck1', cat:'luck',  name:'Chance du pêcheur',   desc:'Chance de rareté +6%.',      base:500,  mul:1.6, max:10, fx:{f:'luck',k:'add',v:0.06} },
+  { id:'shimmer',cat:'luck', name:'Paillettes vives',    desc:'Paillettes plus grosses.',   base:900,  mul:1.6, max:5,  fx:{f:'partSize',k:'add',v:0.12} },
+  { id:'beacon',cat:'luck',  name:'Balise de rareté',    desc:'Révèle la rareté avant de ferrer.', base:8000, mul:1, max:1, fx:{f:'beacon',k:'flag',v:1} },
+  { id:'floor1',cat:'luck',  name:'Filet fin',           desc:'Jamais sous Peu commune.', base:5000, mul:1, max:1, req:{dissolved:8},  fx:{f:'rarityFloor',k:'max',v:1} },
+  { id:'luck2', cat:'luck',  name:'Fortune abyssale',    desc:'Chance de rareté +8%.', base:15000,mul:1.6, max:8, req:{dissolved:20}, fx:{f:'luck',k:'add',v:0.08} },
+  { id:'floor2',cat:'luck',  name:'Grand filet',         desc:'Jamais sous Rare.', base:60000,mul:1, max:1, req:{dissolved:40}, fx:{f:'rarityFloor',k:'max',v:2} },
+  // — AP / économie —
+  { id:'ap1',   cat:'eco',   name:'Marée montante',      desc:'AP par capture ×1.1.', base:400, mul:1.7, max:12, fx:{f:'apMult',k:'mul',v:1.1} },
+  { id:'apperf',cat:'eco',   name:'Prime de précision',  desc:'+1 AP sur capture parfaite.', base:800, mul:1.9, max:5, fx:{f:'apPerfect',k:'add',v:1} },
+  { id:'sell1', cat:'eco',   name:'Bon négociant',       desc:'Vente +12% AP.', base:300, mul:1.5, max:10, fx:{f:'sellMult',k:'mul',v:1.12} },
+  { id:'dis1',  cat:'eco',   name:'Dissolution active',  desc:'Dissolution +18% ADN.', base:350, mul:1.5, max:10, fx:{f:'dissolveMult',k:'mul',v:1.18} },
+  { id:'disdur',cat:'eco',   name:'Enzyme lente',        desc:'Durée du boost dissolution +10%.', base:1200, mul:1.7, max:6, fx:{f:'dissolveDur',k:'mul',v:1.10} },
+  { id:'bulk',  cat:'eco',   name:'Vente en lot',        desc:'Vend tous les doublons d’un coup.', base:2500, mul:1, max:1, fx:{f:'bulk',k:'flag',v:1} },
+  { id:'sell2', cat:'eco',   name:'Grand marché',        desc:'Vente +18% AP.', base:4000, mul:1.6, max:8, req:{dissolved:12}, fx:{f:'sellMult',k:'mul',v:1.18} },
+  { id:'ap2',   cat:'eco',   name:'Grande marée',        desc:'AP par capture ×1.15.', base:20000, mul:1.6, max:10, req:{dissolved:25}, fx:{f:'apMult',k:'mul',v:1.15} },
+  { id:'refine',cat:'eco',   name:'Dissolution raffinée',desc:'+1 rareté effective à la dissolution.', base:40000, mul:1, max:1, req:{disRarity:4}, fx:{f:'refine',k:'add',v:1} },
+  // — Combo —
+  { id:'combo1', cat:'combo', name:'Élan de pêche',      desc:'+4% AP par capture consécutive.', base:600, mul:1.6, max:10, fx:{f:'comboStep',k:'add',v:0.04} },
+  { id:'combomax',cat:'combo',name:'Souffle long',       desc:'Combo max +3.', base:500, mul:1.7, max:8, fx:{f:'comboMax',k:'add',v:3} },
+  { id:'combokeep',cat:'combo',name:'Sang-froid',        desc:'Le combo survit à 1 raté.', base:6000, mul:1, max:1, fx:{f:'comboKeep',k:'flag',v:1} },
+  { id:'combostart',cat:'combo',name:'Départ lancé',     desc:'Le combo démarre à ×1.2.', base:9000, mul:1, max:1, fx:{f:'comboStart',k:'flag',v:1} },
+  { id:'combo2', cat:'combo', name:'Torrent',            desc:'+6% AP par capture consécutive.', base:25000, mul:1.6, max:8, req:{dissolved:30}, fx:{f:'comboStep',k:'add',v:0.06} },
+  { id:'frenzy', cat:'combo', name:'Frénésie',           desc:'À combo 10 : ×2 AP pendant 20s.', base:30000, mul:1, max:1, fx:{f:'frenzy',k:'flag',v:1} },
+  // — Multi-capture —
+  { id:'double1',cat:'multi', name:'Double prise',       desc:'+6% chance de double capture.', base:1000, mul:1.7, max:10, fx:{f:'doubleChance',k:'add',v:0.06} },
+  { id:'net',    cat:'multi', name:'Coup de filet',      desc:'Une capture parfaite attrape 1 paillette voisine.', base:18000, mul:1, max:1, fx:{f:'net',k:'flag',v:1} },
+  { id:'swarm',  cat:'multi', name:'Essaim',             desc:'+2 paillettes max.', base:12000, mul:1.8, max:4, req:{dissolved:18}, fx:{f:'maxParticles',k:'add',v:2} },
+  { id:'triple', cat:'multi', name:'Triple prise',       desc:'+4% chance de triple capture.', base:30000, mul:1.7, max:6, req:{dissolved:35}, fx:{f:'tripleChance',k:'add',v:0.04} },
+  // — Automatisation —
+  { id:'auto1',  cat:'auto',  name:'Pêcheur auto',       desc:'Capture passive lente.', base:8000, mul:1, max:1, fx:{f:'auto',k:'flag',v:1} },
+  { id:'auto2',  cat:'auto',  name:'Auto : cadence',     desc:'Pêcheur auto +40% de vitesse.', base:6000, mul:1.6, max:8, fx:{f:'autoRate',k:'mul',v:1.4} },
+  { id:'autoq',  cat:'auto',  name:'Auto : finesse',     desc:'Meilleure rareté en auto.', base:20000, mul:1.7, max:5, fx:{f:'autoQual',k:'add',v:0.1} },
+  { id:'autodis',cat:'auto',  name:'Auto-dissolution',   desc:'Dissout les communes en surplus (>5).', base:10000, mul:1, max:1, fx:{f:'autoDissolve',k:'flag',v:1} },
+  { id:'autocombo',cat:'auto',name:'Auto-entretien',     desc:'Le pêcheur auto entretient le combo.', base:45000, mul:1, max:1, fx:{f:'autoCombo',k:'flag',v:1} },
+  // — Synergies / méta —
+  { id:'synergy',cat:'meta',  name:'Synergie vitale',    desc:'+1% ADN/s par créature unique collectée.', base:15000, mul:1, max:1, fx:{f:'synergy',k:'flag',v:1} },
+  { id:'apidle', cat:'meta',  name:'Rêverie',            desc:'+0.02 AP/min passif par palier atteint.', base:25000, mul:1, max:1, fx:{f:'apIdle',k:'flag',v:1} },
+  { id:'dnafish',cat:'meta',  name:'Courant génétique',  desc:'Ta production ADN agrandit la zone verte.', base:20000, mul:1, max:1, fx:{f:'dnaZone',k:'flag',v:1} },
+  { id:'collector',cat:'meta',name:'Collectionneur',     desc:'+5% valeur par famille de rareté complétée.', base:22000, mul:1, max:1, fx:{f:'collector',k:'flag',v:1} },
+  { id:'calm',   cat:'meta',  name:'Eaux calmes',        desc:'-12% vitesse curseur (global).', base:16000, mul:1.6, max:5, req:{dissolved:22}, fx:{f:'speedMult',k:'mul',v:0.88} },
+  { id:'lucky',  cat:'meta',  name:'Trèfle abyssal',     desc:'+10% à tous les gains AP.', base:80000, mul:1, max:1, req:{dissolved:50}, fx:{f:'apMult',k:'mul',v:1.10} },
+  { id:'prisme', cat:'meta',  name:'Prisme',             desc:'Les Mythiques apparaissent 2× plus.', base:120000, mul:1, max:1, fx:{f:'prisme',k:'flag',v:1} },
+  { id:'deep',   cat:'meta',  name:'Grands fonds',       desc:'+1 paillette et +8% chance.', base:70000, mul:1.8, max:3, req:{dissolved:45}, fx:{f:'maxParticles',k:'add',v:1} },
+  { id:'ascend', cat:'meta',  name:'Ascension',          desc:'×1.25 AP permanent.', base:200000, mul:1, max:1, req:{disRarity:5}, fx:{f:'apMult',k:'mul',v:1.25} },
+];
+
+/* ---------- État pêche (initialisé paresseusement, pas de patch game.js) ---------- */
+function fEnsure() {
+  if (!state.collection) state.collection = {};       // creatureId -> {count, best}
+  if (!state.fishUp) state.fishUp = {};               // upgradeId -> level
+  if (!state.fishing) state.fishing = { catches:0, perfect:0, combo:0, bestCombo:0, dissolved:0, disRarityMax:-1, sold:0, autoAt:0, idleAt:0, frenzyEnd:0 };
+  if (!state.creatureBoosts) state.creatureBoosts = 0;
+}
+
+/* ---------- Agrégation des modificateurs ---------- */
+function fMods() {
+  fEnsure();
+  const m = { zone:0, speedMult:1, perfect:0.15, maxParticles:3, spawnMult:1, luck:0, apMult:1, apPerfect:0,
+    comboStep:0, comboMax:5, dissolveMult:1, dissolveDur:1, sellMult:1, doubleChance:0, tripleChance:0,
+    rarityFloor:0, life:0, partSize:0, forgive:0, autoRate:1, autoQual:0, refine:0,
+    steady:false, beacon:false, bulk:false, comboKeep:false, comboStart:false, frenzy:false,
+    net:false, auto:false, autoDissolve:false, autoCombo:false, synergy:false, apIdle:false, dnaZone:false, collector:false, prisme:false };
+  for (const u of FISH_UP) {
+    const L = state.fishUp[u.id] || 0; if (!L) continue;
+    const x = u.fx;
+    if (x.k === 'add') m[x.f] += x.v * L;
+    else if (x.k === 'mul') m[x.f] *= Math.pow(x.v, L);
+    else if (x.k === 'flag') m[x.f] = true;
+    else if (x.k === 'max') m[x.f] = Math.max(m[x.f], x.v);
+  }
+  // collectionneur : +5% valeur par famille complétée
+  if (m.collector) m.sellMult *= (1 + 0.05 * completedFamilies());
+  return m;
+}
+
+function uCost(u) {
+  fEnsure();
+  const L = state.fishUp[u.id] || 0;
+  return Math.ceil(u.base * Math.pow(u.mul, L));
+}
+function uReqOk(u) {
+  fEnsure();
+  if (!u.req) return true;
+  if (u.req.dissolved && state.fishing.dissolved < u.req.dissolved) return false;
+  if (u.req.disRarity && state.fishing.disRarityMax < u.req.disRarity) return false;
+  return true;
+}
+function uCanBuy(u) {
+  fEnsure();
+  const L = state.fishUp[u.id] || 0;
+  if (L >= u.max) return false;
+  if (!uReqOk(u)) return false;
+  return state.dna >= uCost(u);
+}
+function buyFishUp(id) {
+  fEnsure();
+  const u = FISH_UP.find(x => x.id === id); if (!u || !uCanBuy(u)) return false;
+  state.dna -= uCost(u);
+  state.fishUp[id] = (state.fishUp[id] || 0) + 1;
+  return true;
+}
+
+function completedFamilies() {
+  let done = 0;
+  for (let r = 0; r < RARITIES.length; r++) {
+    const fam = CREATURES.filter(c => c.r === r);
+    if (fam.every(c => (state.collection[c.id]?.count || 0) > 0)) done++;
+  }
+  return done;
+}
+function uniqueCollected() { return Object.values(state.collection).filter(c => c.count > 0).length; }
+
+/* ---------- Tirage de rareté & créature ---------- */
+function rollRarity() {
+  const m = fMods();
+  const weights = RARITIES.map(r => {
+    let w = r.weight;
+    if (m.luck > 0 && r.id > 0) w *= (1 + m.luck * r.id);          // la chance favorise les hauts tiers
+    if (r.id === 5 && m.prisme) w *= 2;
+    return w;
+  });
+  let total = weights.reduce((a, b) => a + b, 0);
+  let x = Math.random() * total, idx = 0;
+  for (let i = 0; i < weights.length; i++) { if (x < weights[i]) { idx = i; break; } x -= weights[i]; }
+  if (idx < m.rarityFloor) idx = m.rarityFloor;
+  return idx;
+}
+function rollCreature(rarityIdx) {
+  const pool = CREATURES.filter(c => c.r === rarityIdx);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* ---------- Enregistrer une capture ---------- */
+function registerCatch(creature, perfect) {
+  fEnsure();
+  const m = fMods();
+  const slot = state.collection[creature.id] || (state.collection[creature.id] = { count:0, best:0 });
+  slot.count++;
+  state.fishing.catches++;
+  // combo
+  state.fishing.combo++;
+  if (state.fishing.combo > state.fishing.bestCombo) state.fishing.bestCombo = state.fishing.combo;
+  if (m.frenzy && state.fishing.combo === 10) state.fishing.frenzyEnd = Date.now() + 20000;
+  // AP
+  let ap = 1;
+  if (perfect) { state.fishing.perfect++; ap += m.apPerfect; }
+  let comboMul = 1 + Math.min(state.fishing.comboMax ?? m.comboMax, state.fishing.combo) * m.comboStep;
+  if (m.comboStart && comboMul < 1.2) comboMul = 1.2;
+  ap *= comboMul * m.apMult;
+  if (state.fishing.frenzyEnd > Date.now()) ap *= 2;
+  ap = Math.max(1, Math.round(ap));
+  addAgePoints(ap);
+  return { ap, perfect, comboMul };
+}
+function breakCombo() { fEnsure(); const m = fMods(); if (!m.comboKeep) state.fishing.combo = 0; }
+
+function addAgePoints(n) {
+  state.agePoints = (state.agePoints || 0) + n;
+  // évolution de palier gérée à l'affichage (currentPalier)
+}
+
+/* ---------- Dissoudre / Vendre ---------- */
+function dissolveCreature(id) {
+  fEnsure();
+  const slot = state.collection[id]; if (!slot || slot.count <= 0) return null;
+  const c = CREATURES.find(x => x.id === id); const rar = RARITIES[c.r];
+  const m = fMods();
+  slot.count--;
+  state.fishing.dissolved++;
+  if (c.r > state.fishing.disRarityMax) state.fishing.disRarityMax = c.r;
+  const effR = RARITIES[Math.min(5, c.r + m.refine)];
+  const mult = effR.dissolve * c.val * m.dissolveMult;
+  const durH = effR.boostH * m.dissolveDur;
+  // boost ADN via le système de boosts existant
+  state.boosts.push({ id:'dissolve', mult: 1 + (mult - 1), endsAt: Date.now() + durH * 3600 * 1000 });
+  return { mult: (1 + (mult - 1)), durH, name: c.name };
+}
+function sellCreature(id, all) {
+  fEnsure();
+  const slot = state.collection[id]; if (!slot || slot.count <= 0) return null;
+  const c = CREATURES.find(x => x.id === id); const rar = RARITIES[c.r];
+  const m = fMods();
+  const qty = all ? slot.count : 1;
+  const per = Math.max(1, Math.round(rar.sellAP * c.val * m.sellMult));
+  slot.count -= qty;
+  state.fishing.sold += qty;
+  const gain = per * qty;
+  addAgePoints(gain);
+  return { gain, qty, per, name: c.name };
+}
+
+/* ============================================================================
+   RENDU PROCÉDURAL DES CRÉATURES (fallback si pas d'asset importé)
+   ============================================================================ */
+function creatureAssetUrl(c) { return assetUrl('creature_' + c.id); }
+function drawCreature(ctx, x, y, s, c, t, alpha) {
+  alpha = alpha == null ? 1 : alpha;
+  const url = creatureAssetUrl(c);
+  if (url) {
+    drawCreature._imgs = drawCreature._imgs || {};
+    if (!drawCreature._imgs[c.id]) { const im = new Image(); im.src = url; drawCreature._imgs[c.id] = im; }
+    const im = drawCreature._imgs[c.id];
+    if (im.complete && im.naturalWidth) { ctx.globalAlpha = alpha; ctx.drawImage(im, x - s, y - s, s * 2, s * 2); ctx.globalAlpha = 1; return; }
+  }
+  const rar = RARITIES[c.r];
+  ctx.save(); ctx.translate(x, y); ctx.globalAlpha = alpha;
+  const col = `hsl(${c.hue},70%,62%)`, glow = `hsl(${c.hue},90%,75%)`;
+  // halo
+  const g = ctx.createRadialGradient(0,0,s*0.1,0,0,s*1.5);
+  g.addColorStop(0, `hsla(${c.hue},90%,70%,0.35)`); g.addColorStop(1, `hsla(${c.hue},90%,70%,0)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0,0,s*1.5,0,7); ctx.fill();
+  ctx.fillStyle = col; ctx.strokeStyle = glow; ctx.lineWidth = Math.max(1, s*0.06);
+  const wob = Math.sin(t*2 + c.hue);
+  switch (c.shape) {
+    case 'rod':
+      ctx.save(); ctx.rotate(0.5 + wob*0.1); roundRect(ctx,-s*0.9,-s*0.28,s*1.8,s*0.56,s*0.28); ctx.fill(); ctx.stroke(); ctx.restore(); break;
+    case 'sphere':
+      ctx.beginPath(); ctx.arc(0,0,s*0.8,0,7); ctx.fill(); ctx.stroke();
+      for(let i=0;i<7;i++){const a=i/7*7;ctx.beginPath();ctx.fillStyle=glow;ctx.arc(Math.cos(a)*s*0.4,Math.sin(a)*s*0.4,s*0.1,0,7);ctx.fill();} break;
+    case 'blob':
+      ctx.beginPath();
+      for(let a=0;a<=7;a+=0.3){const rr=s*(0.8+Math.sin(a*3+t*1.5)*0.12);a===0?ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr):ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,s*0.22,0,7); ctx.fill(); break;
+    case 'cilia':
+      ctx.beginPath(); ctx.ellipse(0,0,s*0.85,s*0.55,0,0,7); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle=glow; for(let i=0;i<14;i++){const a=i/14*7;const ox=Math.cos(a)*s*0.85,oy=Math.sin(a)*s*0.55;ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+Math.cos(a)*s*0.3*(1+wob*0.3),oy+Math.sin(a)*s*0.3);ctx.stroke();} break;
+    case 'worm':
+      ctx.strokeStyle=col; ctx.lineWidth=s*0.34; ctx.lineCap='round'; ctx.beginPath();
+      for(let i=0;i<=10;i++){const px=(-0.9+i*0.18)*s;const py=Math.sin(i*0.7+t*3)*s*0.3;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);} ctx.stroke();
+      ctx.strokeStyle=glow;ctx.lineWidth=s*0.12;ctx.stroke(); break;
+    case 'crystal':
+      ctx.beginPath(); for(let i=0;i<6;i++){const a=i/6*7 - 1.57;const rr=i%2?s*0.5:s*0.9;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);} ctx.closePath(); ctx.fill(); ctx.stroke(); break;
+    case 'spiral':
+      ctx.strokeStyle=col; ctx.lineWidth=s*0.2; ctx.beginPath();
+      for(let i=0;i<40;i++){const a=i*0.4+t;const rr=s*0.1+i*s*0.022;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);} ctx.stroke();
+      ctx.strokeStyle=glow;ctx.lineWidth=s*0.07;ctx.stroke(); break;
+    case 'star':
+      ctx.beginPath(); for(let i=0;i<12;i++){const a=i/12*7 + t*0.5;const rr=i%2?s*0.4:s*1.0;const px=Math.cos(a)*rr,py=Math.sin(a)*rr;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);} ctx.closePath();
+      const sg=ctx.createRadialGradient(0,0,0,0,0,s);sg.addColorStop(0,'#fff');sg.addColorStop(1,glow);ctx.fillStyle=sg;ctx.fill();ctx.stroke(); break;
+    case 'jelly':
+      ctx.beginPath(); ctx.arc(0,-s*0.1,s*0.7,Math.PI,0); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle=glow; ctx.lineWidth=s*0.08;
+      for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*s*0.25,-s*0.05);for(let j=0;j<=6;j++){ctx.lineTo(i*s*0.25+Math.sin(j+t*3+i)*s*0.12,-s*0.05+j*s*0.16);}ctx.stroke();} break;
+    case 'eye':
+      ctx.beginPath(); ctx.arc(0,0,s*0.8,0,7); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#08131a'; ctx.beginPath(); ctx.arc(wob*s*0.15,0,s*0.4,0,7); ctx.fill();
+      ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(wob*s*0.15,0,s*0.18,0,7); ctx.fill();
+      ctx.strokeStyle=col;ctx.lineWidth=s*0.1;for(let i=0;i<4;i++){const a=Math.sin(t+i)*0.6+i/4*7;ctx.beginPath();ctx.moveTo(Math.cos(a)*s*0.8,Math.sin(a)*s*0.8);ctx.lineTo(Math.cos(a)*s*1.2,Math.sin(a)*s*1.2);ctx.stroke();} break;
+    case 'beast':
+      ctx.beginPath(); ctx.ellipse(0,0,s*0.9,s*0.6,0,0,7); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle=glow;ctx.lineWidth=s*0.09;
+      for(let i=0;i<8;i++){const a=i/8*7;const ox=Math.cos(a)*s*0.9,oy=Math.sin(a)*s*0.6;ctx.beginPath();ctx.moveTo(ox,oy);const b=a+Math.sin(t*2+i)*0.4;ctx.lineTo(ox+Math.cos(b)*s*0.5,oy+Math.sin(b)*s*0.5);ctx.stroke();}
+      ctx.fillStyle='#08131a';ctx.beginPath();ctx.arc(-s*0.25,-s*0.1,s*0.1,0,7);ctx.arc(s*0.25,-s*0.1,s*0.1,0,7);ctx.fill(); break;
+    default:
+      ctx.beginPath(); ctx.arc(0,0,s*0.8,0,7); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+/* ============================================================================
+   CRÉATURE PRINCIPALE ÉVOLUTIVE (20 paliers) — dessinée dans le diorama
+   ============================================================================ */
+function drawMainCreature(ctx, w, h, t) {
+  const p = currentPalier();
+  const cx = w/2, cy = h*0.55;
+  const url = assetUrl('palier_' + p) || assetUrl('palier_' + nearestPalierAsset(p)) || assetUrl('cellStage' + Math.min(5, Math.max(1, Math.ceil(p/4)||1)));
+  const base = Math.min(w, h) * (0.14 + p * 0.006);
+  const breathe = 1 + Math.sin(t*1.2)*0.04;
+  const R = base * breathe;
+  if (url) {
+    drawMainCreature._imgs = drawMainCreature._imgs || {};
+    if (drawMainCreature._cur !== url) { const im = new Image(); im.src = url; drawMainCreature._imgs[url] = im; drawMainCreature._cur = url; }
+    const im = drawMainCreature._imgs[url];
+    if (im && im.complete && im.naturalWidth) {
+      const sway = Math.sin(t*0.8)*R*0.05;
+      ctx.drawImage(im, cx - R + sway, cy - R, R*2, R*2); return;
+    }
+  }
+  // Procédural : morph cellule -> poisson -> alien selon p
+  ctx.save(); ctx.translate(cx + Math.sin(t*0.8)*R*0.06, cy + Math.sin(t*1.1)*R*0.03);
+  const hue = 168 + p * 4;                 // vire vers le violet en fin
+  const glow = ctx.createRadialGradient(0,0,R*0.2,0,0,R*1.7);
+  glow.addColorStop(0,`hsla(${hue},90%,70%,0.35)`); glow.addColorStop(1,`hsla(${hue},90%,70%,0)`);
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0,0,R*1.7,0,7); ctx.fill();
+  const elong = 1 + Math.min(1.1, p*0.06);      // s'allonge
+  ctx.save(); ctx.scale(elong, 1/Math.sqrt(elong));
+  // corps
+  ctx.beginPath();
+  for (let a=0;a<=7;a+=0.12){ const wob=1+Math.sin(a*6+t*1.5)*(0.04-p*0.001); const x=Math.cos(a)*R*wob, y=Math.sin(a)*R*wob; a===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.closePath();
+  const mg = ctx.createRadialGradient(-R*0.3,-R*0.3,R*0.1,0,0,R);
+  mg.addColorStop(0,`hsla(${hue+10},95%,80%,0.7)`); mg.addColorStop(1,`hsla(${190},60%,25%,0.7)`);
+  ctx.fillStyle=mg; ctx.fill();
+  ctx.strokeStyle=`hsla(${hue},90%,70%,0.9)`; ctx.lineWidth=2*(self.devicePixelRatio||1); ctx.stroke();
+  ctx.restore();
+  // queue (dès palier 5)
+  if (p>=5){ ctx.fillStyle=`hsla(${hue},85%,65%,0.7)`; const tw=Math.sin(t*4)*R*0.25;
+    ctx.beginPath(); ctx.moveTo(-R*elong*0.9,0); ctx.lineTo(-R*elong*1.6, -R*0.5+tw); ctx.lineTo(-R*elong*1.5,0); ctx.lineTo(-R*elong*1.6, R*0.5+tw); ctx.closePath(); ctx.fill(); }
+  // nageoires (dès 8)
+  if (p>=8){ ctx.fillStyle=`hsla(${hue},80%,70%,0.55)`;
+    ctx.beginPath(); ctx.ellipse(0,-R*0.7, R*0.4, R*0.2, 0.5,0,7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, R*0.7, R*0.4, R*0.2,-0.5,0,7); ctx.fill(); }
+  // œil (dès 8)
+  if (p>=8){ ctx.fillStyle='#eafffb'; ctx.beginPath(); ctx.arc(R*elong*0.55, -R*0.1, R*0.14,0,7); ctx.fill();
+    ctx.fillStyle='#08131a'; ctx.beginPath(); ctx.arc(R*elong*0.58, -R*0.1, R*0.07,0,7); ctx.fill(); }
+  else { ctx.fillStyle='rgba(210,255,245,0.95)'; ctx.beginPath(); ctx.arc(0,0,R*0.18,0,7); ctx.fill(); }
+  // organites (paliers bas)
+  if (p<8){ const n=Math.max(2,p+1); for(let i=0;i<n;i++){const a=t*0.5+i*7/n;ctx.fillStyle=`hsla(${hue},90%,70%,0.9)`;ctx.beginPath();ctx.arc(Math.cos(a)*R*0.45,Math.sin(a)*R*0.45,R*0.08,0,7);ctx.fill();} }
+  // motifs alien (dès 14) : yeux/points lumineux extra
+  if (p>=14){ for(let i=0;i<p-12;i++){ const a=i*1.3+t; ctx.fillStyle=`hsla(${280},95%,75%,0.9)`; ctx.beginPath(); ctx.arc(Math.cos(a)*R*elong*0.5, Math.sin(a)*R*0.4, R*0.05,0,7); ctx.fill(); } }
+  ctx.restore();
+}
+function nearestPalierAsset(p){ // si palier exact absent, cherche le plus proche fourni
+  for(let d=0; d<20; d++){ if(assetUrl('palier_'+(p-d))) return p-d; if(assetUrl('palier_'+(p+d))) return p+d; }
+  return p;
+}
+
+/* ============================================================================
+   CRÉATURES QUI NAGENT dans le diorama (collection vivante)
+   ============================================================================ */
+let SWIMMERS = [];
+function syncSwimmers() {
+  const uniq = CREATURES.filter(c => (state.collection?.[c.id]?.count || 0) > 0);
+  const want = Math.min(14, uniq.length);
+  // ajoute
+  while (SWIMMERS.length < want) {
+    const c = uniq[SWIMMERS.length % uniq.length];
+    SWIMMERS.push(mkSwimmer(c));
+  }
+  while (SWIMMERS.length > want) SWIMMERS.pop();
+  // réassigne créatures (au cas où collection change)
+  SWIMMERS.forEach((sw,i) => { sw.c = uniq[i % uniq.length]; });
+}
+function mkSwimmer(c) {
+  return { c, x:Math.random(), y:0.15+Math.random()*0.7, vx:(Math.random()<.5?-1:1)*(0.02+Math.random()*0.05), vy:(Math.random()-0.5)*0.01, ph:Math.random()*7, sz:0.5+Math.random()*0.6 };
+}
+function drawSwimmers(ctx, w, h, t) {
+  if (SWIMMERS.length === 0) return;
+  for (const sw of SWIMMERS) {
+    sw.x += sw.vx * 0.003; sw.y += sw.vy * 0.003 + Math.sin(t*1.5+sw.ph)*0.0006;
+    if (sw.x < -0.1) sw.x = 1.1; if (sw.x > 1.1) sw.x = -0.1;
+    if (sw.y < 0.1) sw.vy = Math.abs(sw.vy); if (sw.y > 0.85) sw.vy = -Math.abs(sw.vy);
+    const px = sw.x*w, py = sw.y*h, s = Math.min(w,h)*0.035*sw.sz;
+    ctx.save(); if (sw.vx<0) { ctx.translate(px,py); ctx.scale(-1,1); ctx.translate(-px,-py); }
+    drawCreature(ctx, px, py, s, sw.c, t+sw.ph, 0.9);
+    ctx.restore();
+  }
+}
+
+/* ============================================================================
+   LE POND — mini-jeu (canvas plein écran) : repérage + barre de timing
+   ============================================================================ */
+const Pond = (() => {
+  let canvas, ctx, W=0, H=0, raf=0, running=false, dpr=1;
+  let particles=[], phase='idle', reel=null, msg='', msgT=0, lastT=0;
+
+  function open() {
+    $('#fishing-modal').classList.add('visible');
+    canvas = $('#pond-canvas'); ctx = canvas.getContext('2d');
+    resize(); window.addEventListener('resize', resize);
+    particles=[]; phase='idle'; reel=null; setMsg('Touche une paillette lumineuse pour ferrer');
+    running=true; lastT=performance.now(); spawnTimer=0;
+    canvas.addEventListener('pointerdown', onDown);
+    loop();
+  }
+  function close() {
+    running=false; cancelAnimationFrame(raf);
+    window.removeEventListener('resize', resize);
+    canvas && canvas.removeEventListener('pointerdown', onDown);
+    $('#fishing-modal').classList.remove('visible');
+    if (typeof saveGame==='function') saveGame();
+    if (window.Fishing) { Fishing.renderMare(); }
+  }
+  function resize() {
+    const r = canvas.parentElement.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = canvas.width = r.width*dpr; H = canvas.height = r.height*dpr;
+    canvas.style.width=r.width+'px'; canvas.style.height=r.height+'px';
+  }
+  function setMsg(m){ msg=m; msgT=Date.now(); }
+
+  let spawnTimer=0;
+  function spawnParticle() {
+    const rIdx = rollRarity();
+    const rar = RARITIES[rIdx];
+    const m = fMods();
+    particles.push({
+      x: 0.1+Math.random()*0.8, y: 0.12+Math.random()*0.6,
+      vx:(Math.random()-0.5)*0.03, vy:(Math.random()-0.5)*0.02,
+      r: (10 + rIdx*2) * (1+m.partSize) , rar:rIdx, creature: rollCreature(rIdx),
+      born: Date.now(), life:(3.5 + m.life + rIdx*0.4)*1000, ph:Math.random()*7,
+    });
+  }
+
+  function onDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX-rect.left)/rect.width, my=(e.clientY-rect.top)/rect.height;
+    if (phase==='idle') {
+      // cherche la paillette la plus proche du clic
+      let best=null,bd=1e9;
+      for (const p of particles){ const dx=(p.x-mx),dy=(p.y-my); const d=dx*dx+dy*dy; const rr=(p.r/ (W/dpr))*1.8; if(d<rr*rr && d<bd){bd=d;best=p;} }
+      if (best) startReel(best);
+    } else if (phase==='reel') {
+      attempt();
+    }
+  }
+
+  function startReel(p) {
+    const m = fMods();
+    const rar = RARITIES[p.rar];
+    let zone = Math.max(0.05, Math.min(0.85, rar.zone + m.zone + (m.dnaZone ? Math.min(0.15, Math.log10(1+dnaPerSecond())/40) : 0)));
+    let speed = rar.speed * m.speedMult;    // cycles/seconde
+    reel = { p, zone, start: Math.random()*(1-zone), speed, pos:0, dir:1,
+      perfect: Math.max(0.06, zone*m.perfect), tries: 1 + m.forgive, done:false };
+    particles = particles.filter(x=>x!==p);
+    phase='reel'; setMsg('Clique quand le curseur est dans la zone verte'+(m.beacon?` — ${rar.name}`:''));
+  }
+
+  function attempt() {
+    if (!reel || reel.done) return;
+    const m = fMods();
+    const inZone = reel.pos >= reel.start && reel.pos <= reel.start+reel.zone;
+    const center = reel.start + reel.zone/2;
+    const isPerfect = Math.abs(reel.pos-center) <= reel.perfect/2;
+    if (inZone) {
+      reel.done=true;
+      const res = registerCatch(reel.p.creature, isPerfect);
+      let extra = [];
+      // multi-capture
+      if (Math.random() < m.doubleChance) extra.push(rollCreature(reel.p.rar));
+      if (Math.random() < m.tripleChance) extra.push(rollCreature(reel.p.rar));
+      if (isPerfect && m.net && particles.length) { const near=particles[0]; extra.push(near.creature); particles.shift(); }
+      extra.forEach(c=>registerCatch(c, false));
+      syncSwimmers();
+      const c = reel.p.creature; const rar=RARITIES[c.r];
+      flash(`${isPerfect?'PARFAIT ! ':''}${c.name} capturé · +${res.ap} ⭐${extra.length?` (+${extra.length})`:''}`, rar.glow);
+      if (typeof toast==='function') toast(`🎣 <b>${c.name}</b> (${rar.name}) · +${res.ap} ⭐`, 'good');
+      setTimeout(()=>{ phase='idle'; reel=null; setMsg('Touche une paillette lumineuse'); if(window.Fishing)Fishing.afterCatch(); }, 650);
+    } else {
+      reel.tries--;
+      if (reel.tries<=0) {
+        reel.done=true; breakCombo();
+        flash('Échappé…', '#e0603e');
+        setTimeout(()=>{ phase='idle'; reel=null; setMsg('Touche une paillette lumineuse'); }, 600);
+      } else setMsg(`Raté ! Encore ${reel.tries} essai(s)`);
+    }
+  }
+
+  let flashMsg='',flashCol='',flashT=0;
+  function flash(m,c){ flashMsg=m; flashCol=c; flashT=Date.now(); }
+
+  function loop() {
+    if (!running) return;
+    const now=performance.now(); const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+    const m = fMods();
+    // fond
+    ctx.clearRect(0,0,W,H);
+    const bgUrl = assetUrl('dioramaNight')||assetUrl('dioramaDay');
+    if (bgUrl){ Pond._bg = Pond._bg||{}; if(!Pond._bg[bgUrl]){const im=new Image();im.src=bgUrl;Pond._bg[bgUrl]=im;} const im=Pond._bg[bgUrl]; if(im.complete&&im.naturalWidth){const sc=Math.max(W/im.width,H/im.height);ctx.globalAlpha=0.5;ctx.drawImage(im,(W-im.width*sc)/2,(H-im.height*sc)/2,im.width*sc,im.height*sc);ctx.globalAlpha=1;} else pondBg(); }
+    else pondBg();
+
+    // spawn
+    spawnTimer -= dt;
+    if (phase==='idle' && particles.length < m.maxParticles && spawnTimer<=0) { spawnParticle(); spawnTimer = (1.1*m.spawnMult)*(0.6+Math.random()*0.8); }
+    // maj + purge paillettes
+    const t = now/1000;
+    particles = particles.filter(p => Date.now()-p.born < p.life);
+    for (const p of particles) {
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      if(p.x<0.08||p.x>0.92)p.vx*=-1; if(p.y<0.1||p.y>0.72)p.vy*=-1;
+      drawParticle(p, t);
+    }
+    // barre de timing
+    if (phase==='reel' && reel) {
+      // avance curseur (ping-pong), steady = ralentit au centre
+      let sp = reel.speed;
+      if (m.steady) sp *= (0.55 + Math.abs(reel.pos-0.5)*0.9);
+      reel.pos += reel.dir * sp * dt;
+      if (reel.pos>=1){reel.pos=1;reel.dir=-1;} if(reel.pos<=0){reel.pos=0;reel.dir=1;}
+      drawReel(reel);
+    }
+    // messages
+    drawHudText(m);
+    if (flashMsg && Date.now()-flashT<900) drawFlash();
+    raf = requestAnimationFrame(loop);
+  }
+
+  function pondBg(){ const g=ctx.createRadialGradient(W/2,H*0.4,10,W/2,H*0.5,Math.max(W,H)*0.8); g.addColorStop(0,'#0b3d45');g.addColorStop(1,'#020814');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter'; for(let i=0;i<40;i++){const x=(i*97%W),y=(i*61%H);ctx.fillStyle='rgba(62,230,196,0.05)';ctx.beginPath();ctx.arc(x,y,2*dpr,0,7);ctx.fill();} ctx.globalCompositeOperation='source-over'; }
+
+  function drawParticle(p, t) {
+    const rar=RARITIES[p.rar]; const px=p.x*W, py=p.y*H, s=p.r*dpr;
+    const pulse=0.6+0.4*Math.sin(t*3+p.ph);
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    const g=ctx.createRadialGradient(px,py,0,px,py,s*3);
+    g.addColorStop(0,rar.glow); g.addColorStop(0.3,rar.color); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.globalAlpha=0.5+0.5*pulse; ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,s*3,0,7); ctx.fill();
+    ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(px,py,s*0.5,0,7); ctx.fill();
+    ctx.restore();
+    // étincelles pour hautes raretés
+    if(p.rar>=3){ ctx.strokeStyle=rar.glow; ctx.lineWidth=1.5*dpr; for(let i=0;i<4;i++){const a=t*2+i*1.57;ctx.beginPath();ctx.moveTo(px+Math.cos(a)*s*1.5,py+Math.sin(a)*s*1.5);ctx.lineTo(px+Math.cos(a)*s*2.6,py+Math.sin(a)*s*2.6);ctx.stroke();} }
+  }
+
+  function drawReel(r) {
+    const barW=W*0.8, x0=W*0.1, y=H*0.86, hgt=18*dpr;
+    // fond barre
+    ctx.fillStyle='rgba(3,12,20,0.85)'; roundRect(ctx,x0,y-hgt/2,barW,hgt,hgt/2); ctx.fill();
+    ctx.strokeStyle='rgba(62,230,196,0.3)'; ctx.lineWidth=dpr; ctx.stroke();
+    // zone verte
+    const gx=x0+r.start*barW, gw=r.zone*barW;
+    ctx.fillStyle='rgba(62,230,196,0.5)'; roundRect(ctx,gx,y-hgt/2,gw,hgt,hgt/2); ctx.fill();
+    // zone parfaite
+    const pc=r.start+r.zone/2; const pw=r.perfect*barW;
+    ctx.fillStyle='rgba(255,240,180,0.9)'; ctx.fillRect(x0+pc*barW-pw/2, y-hgt/2, pw, hgt);
+    // curseur
+    const mx=x0+r.pos*barW;
+    ctx.fillStyle='#fff'; ctx.fillRect(mx-2*dpr, y-hgt/2-6*dpr, 4*dpr, hgt+12*dpr);
+    ctx.shadowColor='#fff'; ctx.shadowBlur=10*dpr; ctx.fillRect(mx-2*dpr, y-hgt/2-6*dpr, 4*dpr, hgt+12*dpr); ctx.shadowBlur=0;
+    // créature en cours
+    drawCreature(ctx, W/2, H*0.5, Math.min(W,H)*0.09, r.p.creature, performance.now()/1000, 1);
+  }
+
+  function drawHudText(m) {
+    ctx.fillStyle='rgba(223,245,240,0.9)'; ctx.font=`${14*dpr}px 'Exo 2',sans-serif`; ctx.textAlign='center';
+    ctx.fillText(msg, W/2, H*0.08);
+    ctx.fillStyle='rgba(255,224,138,0.95)'; ctx.font=`bold ${16*dpr}px 'JetBrains Mono',monospace`;
+    ctx.fillText(`⭐ ${fmt(state.agePoints||0)}/100   ·   Combo ×${state.fishing.combo}`, W/2, H*0.14);
+    ctx.textAlign='start';
+  }
+  function drawFlash() {
+    const a=1-(Date.now()-flashT)/900;
+    ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center';
+    ctx.fillStyle=flashCol; ctx.font=`bold ${22*dpr}px 'Exo 2',sans-serif`;
+    ctx.fillText(flashMsg, W/2, H*0.3 - (1-a)*30*dpr); ctx.restore(); ctx.textAlign='start';
+  }
+
+  return { open, close, isOpen:()=>running };
+})();
+
+/* ============================================================================
+   AUTO-PÊCHEUR + AP PASSIF (appelé par la boucle principale)
+   ============================================================================ */
+function fishingTick(dtMs) {
+  fEnsure();
+  const m = fMods();
+  const now = Date.now();
+  // auto-pêcheur
+  if (m.auto) {
+    const interval = 12000 / m.autoRate;     // 12s de base
+    if (!state.fishing.autoAt) state.fishing.autoAt = now;
+    if (now - state.fishing.autoAt >= interval) {
+      state.fishing.autoAt = now;
+      let rIdx = rollRarity();
+      if (m.autoQual>0 && Math.random()<m.autoQual) rIdx=Math.min(5,rIdx+1);
+      const c = rollCreature(rIdx);
+      if (!m.autoCombo) state.fishing.combo = 0;
+      registerCatch(c, false);
+      if (m.autoDissolve && c.r===0 && (state.collection[c.id]?.count||0)>5) dissolveCreature(c.id);
+      syncSwimmers();
+    }
+  }
+  // AP passif (rêverie)
+  if (m.apIdle) {
+    if (!state.fishing.idleAt) state.fishing.idleAt = now;
+    const mins = (now - state.fishing.idleAt)/60000;
+    const rate = 0.02 * currentPalier();
+    if (rate>0 && mins>0) { addAgePoints(rate*mins); state.fishing.idleAt = now; }
+    else state.fishing.idleAt = now;
+  }
+}
+/* Synergie : +1% ADN/s par créature unique (hook lu par computeMultipliers) */
+function fishingProdMult() { fEnsure(); const m=fMods(); return m.synergy ? (1 + 0.01*uniqueCollected()) : 1; }
+window.fishingProdMult = fishingProdMult;
+window.drawMainCreature = drawMainCreature;
+window.drawSwimmers = drawSwimmers;
+
+/* ============================================================================
+   UI — Panneau "Mare", boutique d'améliorations, Collection
+   ============================================================================ */
+const FISH_THUMBS = {};
+function creatureThumb(c) {
+  if (FISH_THUMBS[c.id]) return FISH_THUMBS[c.id];
+  const cv = document.createElement('canvas'); cv.width=cv.height=72;
+  const cx = cv.getContext('2d');
+  drawCreature(cx, 36, 36, 22, c, 1.2, 1);
+  const url = cv.toDataURL(); FISH_THUMBS[c.id]=url; return url;
+}
+
+const FISH_CATS = { skill:'🎯 Précision', luck:'✨ Chance & bancs', eco:'💰 Économie', combo:'🔥 Combo', multi:'🎣 Multi-prise', auto:'⚙️ Automatisation', meta:'🌌 Synergies' };
+
+const Fishing = (() => {
+  let selected = null;
+
+  function init() {
+    fEnsure();
+    if (state.fishing.lastPalier == null) state.fishing.lastPalier = currentPalier();
+    syncSwimmers();
+    // binds (délégation : les boutons de la Mare sont re-rendus dynamiquement)
+    $('#close-pond') && $('#close-pond').addEventListener('click', () => Pond.close());
+    $('#collection-close') && $('#collection-close').addEventListener('click', () => $('#collection-modal').classList.remove('visible'));
+    $('#panel-fishing').addEventListener('click', e => {
+      if (e.target.closest('#open-pond')) { Pond.open(); return; }
+      if (e.target.closest('#open-collection')) { renderCollection(); $('#collection-modal').classList.add('visible'); return; }
+      const b = e.target.closest('[data-fup]'); if (!b) return;
+      if (buyFishUp(b.dataset.fup)) { const u=FISH_UP.find(x=>x.id===b.dataset.fup); toast(`⬆️ ${u.name}`, 'good'); renderMare(); renderHud(); }
+    });
+    $('#collection-body').addEventListener('click', e => {
+      const cell = e.target.closest('[data-c]');
+      if (cell) { selected = cell.dataset.c; renderCollection(); return; }
+      const b = e.target.closest('[data-act]'); if (!b || !selected) return;
+      const act = b.dataset.act;
+      if (act==='dissolve') { const r=dissolveCreature(selected); if(r) toast(`🧪 ${r.name} dissous · ×${r.mult.toFixed(2)} ADN ${Math.round(r.durH*60)}min`, 'good'); }
+      else if (act==='sell1') { const r=sellCreature(selected,false); if(r) toast(`💰 ${r.name} vendu · +${r.gain} ⭐`, 'good'); }
+      else if (act==='sellall') { const r=sellCreature(selected,true); if(r) toast(`💰 ${r.qty}× ${r.name} · +${r.gain} ⭐`, 'good'); }
+      renderCollection(); renderHud(); renderMare();
+    });
+    renderMare(); renderCollection();
+  }
+
+  function afterCatch() {
+    const p = currentPalier();
+    if (p > (state.fishing.lastPalier||0)) {
+      state.fishing.lastPalier = p;
+      const info = PALIERS[p-1];
+      if (info) toast(`🧬 Palier ${p}/20 — <b>${info.name}</b> !`, 'good');
+      Diorama && Diorama.pulseNow && Diorama.pulseNow();
+    }
+    renderMare();
+  }
+
+  function renderMare() {
+    const el = $('#panel-fishing'); if (!el) return;
+    fEnsure();
+    const p = currentPalier();
+    const pInfo = p>0 ? PALIERS[Math.min(19,p-1)] : {name:'Amas primordial'};
+    const uniq = uniqueCollected();
+    let html = `
+      <div class="mare-hero">
+        <button id="open-pond" class="mare-play">🎣 Pêcher dans la Mare</button>
+        <div class="mare-stats">
+          <div><b>${fmt(state.agePoints||0)}</b>/100 ⭐ · Palier ${p}/20</div>
+          <div class="mare-sub">${pInfo.name} · ${uniq}/30 créatures · record combo ×${state.fishing.bestCombo}</div>
+        </div>
+        <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/30)</button>
+      </div>
+      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur = rareté, ferre dans la zone verte. Améliore ta pêche ci-dessous (ADN + créatures dissoutes).</div>
+      <div class="fup-list">`;
+    for (const cat of Object.keys(FISH_CATS)) {
+      const ups = FISH_UP.filter(u=>u.cat===cat);
+      html += `<div class="fup-cat">${FISH_CATS[cat]}</div>`;
+      for (const u of ups) {
+        const L = state.fishUp[u.id]||0; const maxed = L>=u.max;
+        const reqOk = uReqOk(u); const can = uCanBuy(u);
+        const cost = uCost(u);
+        let reqTxt='';
+        if (u.req && !reqOk) {
+          if (u.req.dissolved) reqTxt = `🔒 Dissoudre ${u.req.dissolved} créatures (${state.fishing.dissolved})`;
+          else if (u.req.disRarity) reqTxt = `🔒 Dissoudre 1 ${RARITIES[u.req.disRarity].name}`;
+        }
+        html += `<div class="fup ${can?'aff':''} ${maxed?'maxed':''}">
+          <div class="fup-main"><div class="fup-name">${u.name} ${u.max>1?`<span class="fup-lvl">${L}/${u.max}</span>`:''}</div>
+          <div class="fup-desc">${u.desc}${reqTxt?` <span class="fup-req">${reqTxt}</span>`:''}</div></div>
+          ${maxed?'<span class="fup-max">✔ Max</span>':`<button class="fup-buy" data-fup="${u.id}" ${can?'':'disabled'}>🧬 ${fmt(cost)}</button>`}
+        </div>`;
+      }
+    }
+    html += `</div>`;
+    el.innerHTML = html;
+  }
+
+  function renderCollection() {
+    const el = $('#collection-body'); if (!el) return;
+    fEnsure();
+    let grid = `<div class="col-grid" id="collection-grid">`;
+    for (const c of CREATURES) {
+      const slot = state.collection[c.id]; const got = slot && slot.count>0;
+      const rar = RARITIES[c.r];
+      grid += `<div class="col-cell ${got?'got':'locked'} ${selected===c.id?'sel':''}" data-c="${c.id}" style="--rc:${rar.color}">
+        ${got?`<img class="col-th" src="${creatureThumb(c)}" alt="">`:`<div class="col-lock">?</div>`}
+        <div class="col-name">${got?c.name:'???'}</div>
+        <div class="col-meta">${got?`<span class="col-rar" style="color:${rar.color}">${rar.name}</span> ×${slot.count}`:`<span class="col-rar" style="color:${rar.color}">${rar.name}</span>`}</div>
+      </div>`;
+    }
+    grid += `</div>`;
+    // barre d'action
+    let act = `<div id="collection-actions" class="col-actions">`;
+    if (selected && state.collection[selected]?.count>0) {
+      const c = CREATURES.find(x=>x.id===selected); const rar=RARITIES[c.r]; const m=fMods();
+      const effR = RARITIES[Math.min(5,c.r+m.refine)];
+      const sellPer = Math.max(1, Math.round(rar.sellAP*c.val*m.sellMult));
+      const disMult = (effR.dissolve*c.val*m.dissolveMult);
+      const disDur = Math.round(effR.boostH*m.dissolveDur*60);
+      act += `<div class="col-sel"><b>${c.name}</b> · ${rar.name} · ×${state.collection[c.id].count}</div>
+        <div class="col-btns">
+          <button data-act="dissolve" title="Boost ADN">🧪 Dissoudre<br><small>×${disMult.toFixed(2)} ADN · ${disDur}min</small></button>
+          <button data-act="sell1">💰 Vendre 1<br><small>+${sellPer} ⭐</small></button>
+          ${m.bulk?`<button data-act="sellall">💰 Vendre tout<br><small>+${sellPer*state.collection[c.id].count} ⭐</small></button>`:''}
+        </div>`;
+    } else {
+      act += `<div class="col-hint">Sélectionne une créature capturée pour la dissoudre (boost ADN) ou la vendre (⭐).</div>`;
+    }
+    act += `</div>`;
+    el.innerHTML = grid + act;
+  }
+
+  return { init, renderMare, renderCollection, afterCatch, tick: fishingTick };
+})();
+window.Fishing = Fishing;
+
+/* ---------------------------------------------------------------------------
+   Enregistre les assets pêche dans la console dev (20 paliers + 30 créatures)
+   et branche le 1er lot généré (preview CDN, remplaçable via le menu dev).
+   --------------------------------------------------------------------------- */
+(function registerFishingAssets(){
+  if (typeof ASSET_MANIFEST === 'undefined') return;
+  PALIERS.forEach(p => ASSET_MANIFEST.push({
+    id:'palier_'+p.n, cat:'creature', label:'Palier '+p.n+'/20 — '+p.name, slot:'palier_'+p.n,
+    w:512, h:512, format:'PNG-32', represents:'Créature principale, stade '+p.n+'/20 ('+p.name+').',
+    prompt:'EVOLVE main creature, evolution stage '+p.n+' of 20 ('+p.name+'), bioluminescent teal '+(p.n>=9?'fish-like':'cellular')+' form'+(p.n>=16?' becoming an exotic alien fish':'')+', translucent, on a pure solid black background for easy cutout, stylized 3D, no text. Utilise le palier '+(p.n-1)+' comme référence pour garder la continuité de l’évolution.',
+    refs:[p.n>1 ? ('palier_'+(p.n-1)) : 'ref_da_2', 'ref_da_1', 'ref_da_3']
+  }));
+  CREATURES.forEach(c => { const rr = RARITIES[c.r]; ASSET_MANIFEST.push({
+    id:'creature_'+c.id, cat:'creature', label:'Créature — '+c.name+' ('+rr.name+')', slot:'creature_'+c.id,
+    w:512, h:512, format:'PNG-32', represents:'Microorganisme collectionnable, rareté '+rr.name+'.',
+    prompt:'A '+rr.name.toLowerCase()+' primordial microorganism named "'+c.name+'", bioluminescent '+c.shape+' form, dominant hue around '+c.hue+' degrees, translucent glowing, on a pure solid black background for easy cutout, stylized micro-organism, rim light, no text',
+    refs:['ref_da_2','ref_da_1','ref_da_3']
+  }); });
+  const CDNf = 'https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/';
+  if (typeof DEFAULT_ASSET_FILES !== 'undefined') Object.assign(DEFAULT_ASSET_FILES, {
+    palier_1:  ['assets/palier_1.png',  CDNf+'hf_20260716_095650_987b2583-aefe-43fd-9d99-3aeb5de17d9c.png'],
+    palier_10: ['assets/palier_10.png', CDNf+'hf_20260716_095651_31e31d9a-36b2-4be7-ba4b-20b997cc9dd1.png'],
+    palier_20: ['assets/palier_20.png', CDNf+'hf_20260716_095657_412d49e3-f623-4d01-9439-e91b9d0602e9.png'],
+    creature_protobacterie: ['assets/creature_protobacterie.png', CDNf+'hf_20260716_095659_3bfa732f-7a77-4a76-b5b1-c1927f79fb54.png'],
+    creature_meduse:        ['assets/creature_meduse.png',        CDNf+'hf_20260716_095706_0d9b3e30-5688-418a-9024-ad448072b717.png'],
+    creature_leviathan:     ['assets/creature_leviathan.png',     CDNf+'hf_20260716_095707_e92a3205-9f64-46c0-b308-51628a2fc177.png'],
+  });
+})();
+
+</script>
+<script>
+/* ============================================================================
    EVOLVE — dev.js
    Menu développeur : console d'import d'assets (pilotée par manifeste),
    validation automatique des dimensions PNG, export/import de sauvegarde,
@@ -1980,6 +2917,7 @@ async function boot() {
 
   bindUI();
   Dev.bind();
+  if (window.Fishing) Fishing.init();
   renderAll();
   renderCheckin();
   checkAchievements();
@@ -2000,12 +2938,13 @@ async function boot() {
     const newly = checkAchievements();
     for (const a of newly) toast(`🏆 Succès : <b>${a.name}</b> (+2% production)`, 'good');
     maybeSpawnGolden();
+    if (window.Fishing) Fishing.tick(100);
     renderHud();
   }, 100);
 
   // Rafraîchir les panneaux moins souvent (perf)
   setInterval(() => { renderGenerators(); renderTechs(); renderShop(); }, 500);
-  setInterval(() => { renderAchievements(); renderMinigames(); updateAgeBar(); }, 1500);
+  setInterval(() => { renderAchievements(); renderMinigames(); updateAgeBar(); if (window.Fishing && !Pond.isOpen()) Fishing.renderMare(); }, 1500);
 
   // Auto-save fréquent + points de sauvegarde robustes (mobile : pagehide/visibilitychange)
   setInterval(saveGame, 10000);
