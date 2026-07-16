@@ -1867,16 +1867,16 @@ function updateAgeBar() {
    dissolveMin/Max = mult ADN à la dissolution ; boostH = durée du boost ADN.
    --------------------------------------------------------------------------- */
 const RARITIES = [
-  { id:0, name:'Commune',     catchAP:1,     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5 },
-  { id:1, name:'Peu commune', catchAP:2, color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75 },
-  { id:2, name:'Rare',        catchAP:4,        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1 },
-  { id:3, name:'Épique',      catchAP:7,      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5 },
-  { id:4, name:'Légendaire',  catchAP:14,  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5 },
-  { id:5, name:'Mythique',    catchAP:30,    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4 },
+  { id:0, name:'Commune',     catchAP:1,     color:'#7fd7c4', glow:'#9ff0dd', weight:46, zone:0.30, speed:1.00, sellAP:1,  dissolve:1.4, boostMin:5,  boostH:0.5, fishSpeed:0.30, interval:0.95, fillBase:0.85, drainBase:0.34, startBase:0.30, jit:0.02 },
+  { id:1, name:'Peu commune', catchAP:2, color:'#5bd06a', glow:'#8dff9c', weight:26, zone:0.24, speed:1.20, sellAP:2,  dissolve:1.7, boostMin:8,  boostH:0.75, fishSpeed:0.46, interval:0.70, fillBase:0.80, drainBase:0.46, startBase:0.25, jit:0.05 },
+  { id:2, name:'Rare',        catchAP:4,        color:'#4ea8ff', glow:'#8fd0ff', weight:15, zone:0.18, speed:1.45, sellAP:4,  dissolve:2.2, boostMin:12, boostH:1, fishSpeed:0.64, interval:0.52, fillBase:0.72, drainBase:0.62, startBase:0.22, jit:0.10 },
+  { id:3, name:'Épique',      catchAP:7,      color:'#c48bff', glow:'#e0c0ff', weight:8,  zone:0.14, speed:1.75, sellAP:8,  dissolve:3.0, boostMin:18, boostH:1.5, fishSpeed:0.84, interval:0.40, fillBase:0.64, drainBase:0.78, startBase:0.20, jit:0.16 },
+  { id:4, name:'Légendaire',  catchAP:14,  color:'#ffcf5c', glow:'#ffe9a8', weight:3.5,zone:0.10, speed:2.10, sellAP:18, dissolve:4.5, boostMin:30, boostH:2.5, fishSpeed:1.06, interval:0.31, fillBase:0.56, drainBase:0.95, startBase:0.18, jit:0.22 },
+  { id:5, name:'Mythique',    catchAP:30,    color:'#ff8bd0', glow:'#ffffff', weight:1,  zone:0.075,speed:2.55, sellAP:45, dissolve:7.0, boostMin:60, boostH:4, fishSpeed:1.34, interval:0.25, fillBase:0.48, drainBase:1.15, startBase:0.15, jit:0.30 },
 ];
 
 /* ---------------------------------------------------------------------------
-   CRÉATURES (30) — microorganismes collectionnables
+   CRÉATURES (60) — microorganismes collectionnables
    r = index rareté ; hue procédural ; shape = forme dessinée ; val = multiplicateur
    de valeur propre à la créature (vente/dissolution).
    --------------------------------------------------------------------------- */
@@ -1917,6 +1917,44 @@ const CREATURES = [
   { id:'oracle',        name:'Oracle unicellulaire', r:4, hue:48, shape:'eye',   val:3.6 },
   // Mythique (1)
   { id:'genesis',       name:'Genesis — Le Premier Vivant', r:5, hue:300, shape:'star', val:6.0 },
+
+  // ---- Vague 2 (+30) ----
+  // Communes (8)
+  { id:'bacteriophage', name:'Bactériophage',   r:0, hue:190, shape:'crystal',val:1.05 },
+  { id:'spirochete',    name:'Spirochète',      r:0, hue:150, shape:'spiral', val:1.05 },
+  { id:'coque',         name:'Coque',           r:0, hue:168, shape:'sphere', val:1.0 },
+  { id:'bacille',       name:'Bacille',         r:0, hue:160, shape:'rod',    val:1.0 },
+  { id:'algue_bleue',   name:'Algue bleue',     r:0, hue:196, shape:'blob',   val:1.05 },
+  { id:'levure',        name:'Levure',          r:0, hue:44,  shape:'sphere', val:1.0 },
+  { id:'microalgue',    name:'Microalgue',      r:0, hue:130, shape:'crystal',val:1.05 },
+  { id:'flagelle',      name:'Flagellé simple', r:0, hue:155, shape:'worm',   val:1.0 },
+  // Peu communes (7)
+  { id:'amphipode',     name:'Amphipode',       r:1, hue:40,  shape:'beast',  val:1.2 },
+  { id:'copepode',      name:'Copépode',        r:1, hue:200, shape:'beast',  val:1.25 },
+  { id:'ostracode',     name:'Ostracode',       r:1, hue:190, shape:'sphere', val:1.15 },
+  { id:'heliozoaire',   name:'Héliozoaire',     r:1, hue:210, shape:'crystal',val:1.2 },
+  { id:'acanthaire',    name:'Acanthaire',      r:1, hue:262, shape:'crystal',val:1.25 },
+  { id:'gregarine',     name:'Grégarine',       r:1, hue:300, shape:'worm',   val:1.2 },
+  { id:'suctorien',     name:'Suctorien',       r:1, hue:150, shape:'cilia',  val:1.15 },
+  // Rares (6)
+  { id:'salpe',         name:'Salpe',           r:2, hue:200, shape:'jelly',  val:1.5 },
+  { id:'appendiculaire',name:'Appendiculaire',  r:2, hue:186, shape:'worm',   val:1.5 },
+  { id:'pteropode',     name:'Ptéropode',       r:2, hue:230, shape:'jelly',  val:1.6 },
+  { id:'chaetognathe',  name:'Chaetognathe',    r:2, hue:130, shape:'worm',   val:1.55 },
+  { id:'doliole',       name:'Doliole',         r:2, hue:210, shape:'jelly',  val:1.5 },
+  { id:'trochophore',   name:'Larve trochophore',r:2,hue:160, shape:'cilia',  val:1.5 },
+  // Épiques (5)
+  { id:'siphonophore',  name:'Siphonophore',    r:3, hue:265, shape:'jelly',  val:2.1 },
+  { id:'meduse_abyssale',name:'Méduse abyssale', r:3, hue:250, shape:'jelly',  val:2.2 },
+  { id:'oursin_larve',  name:'Larve d’oursin',  r:3, hue:280, shape:'crystal',val:2.0 },
+  { id:'ver_geant',     name:'Ver géant des fonds',r:3,hue:300,shape:'worm',  val:2.2 },
+  { id:'radiolaire_dore',name:'Radiolaire doré', r:3, hue:44,  shape:'crystal',val:2.3 },
+  // Légendaires (3)
+  { id:'colosse',       name:'Colosse planctonique',r:4,hue:30, shape:'beast', val:3.3 },
+  { id:'ange_abyssal',  name:'Ange abyssal',    r:4, hue:48,  shape:'jelly',  val:3.4 },
+  { id:'titan',         name:'Titan cellulaire', r:4, hue:40,  shape:'beast',  val:3.5 },
+  // Mythique (1)
+  { id:'omega',         name:'Oméga — La Forme Ultime', r:5, hue:280, shape:'star', val:6.5 },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -1954,21 +1992,21 @@ function currentPalier() { return Math.max(0, Math.min(20, Math.floor((state.age
    --------------------------------------------------------------------------- */
 const FISH_UP = [
   // — Précision / skill —
-  { id:'zone1', cat:'skill', name:'Ligne tendue',        desc:'Zone verte +4% par niveau.', base:60,   mul:1.5, max:10, fx:{f:'zone',k:'add',v:0.04} },
-  { id:'speed1',cat:'skill', name:'Main sûre',           desc:'Curseur -6% de vitesse.',    base:80,   mul:1.5, max:10, fx:{f:'speedMult',k:'mul',v:0.94} },
-  { id:'perf1', cat:'skill', name:'Œil de lynx',         desc:'Fenêtre parfaite +12%.',     base:200,  mul:1.7, max:6,  fx:{f:'perfect',k:'add',v:0.12} },
-  { id:'forgive',cat:'skill',name:'Seconde chance',      desc:'+1 tentative en cas de raté.',base:500, mul:3,   max:3,  fx:{f:'forgive',k:'add',v:1} },
-  { id:'steady',cat:'skill', name:'Stabilisateur',       desc:'Le curseur ralentit près du centre.', base:3000, mul:1, max:1, fx:{f:'steady',k:'flag',v:1} },
-  { id:'wide',  cat:'skill', name:'Barre élargie',       desc:'Zone verte +8% (unique).',   base:12000,mul:1,   max:1,  fx:{f:'zone',k:'add',v:0.08} },
-  { id:'zone2', cat:'skill', name:'Ligne renforcée',     desc:'Zone verte +6%.', base:4000, mul:1.6, max:8, req:{dissolved:10}, fx:{f:'zone',k:'add',v:0.06} },
-  { id:'speed2',cat:'skill', name:'Poignet d’acier',     desc:'Curseur -8%.',    base:6000, mul:1.6, max:8, req:{dissolved:15}, fx:{f:'speedMult',k:'mul',v:0.92} },
+  { id:'zone1', cat:'skill', name:'Ligne tendue',        desc:'Barre du joueur +4% par niveau (plus large = plus facile).', base:60,   mul:1.5, max:10, fx:{f:'zone',k:'add',v:0.04} },
+  { id:'speed1',cat:'skill', name:'Main sûre',           desc:'Poisson -6% de vitesse (moins agité).',    base:80,   mul:1.5, max:10, fx:{f:'speedMult',k:'mul',v:0.94} },
+  { id:'perf1', cat:'skill', name:'Œil de lynx',         desc:'Remplissage +12% (la jauge monte plus vite).',     base:200,  mul:1.7, max:6,  fx:{f:'perfect',k:'add',v:0.12} },
+  { id:'forgive',cat:'skill',name:'Seconde chance',      desc:'Départ avec plus d’avance et fuite plus lente.',base:500, mul:3,   max:3,  fx:{f:'forgive',k:'add',v:1} },
+  { id:'steady',cat:'skill', name:'Stabilisateur',       desc:'Barre plus stable : moins de gravité, meilleure poussée.', base:3000, mul:1, max:1, fx:{f:'steady',k:'flag',v:1} },
+  { id:'wide',  cat:'skill', name:'Barre élargie',       desc:'Barre du joueur +8% (unique).',   base:12000,mul:1,   max:1,  fx:{f:'zone',k:'add',v:0.08} },
+  { id:'zone2', cat:'skill', name:'Ligne renforcée',     desc:'Barre du joueur +6%.', base:4000, mul:1.6, max:8, req:{dissolved:10}, fx:{f:'zone',k:'add',v:0.06} },
+  { id:'speed2',cat:'skill', name:'Poignet d’acier',     desc:'Poisson -8% de vitesse.',    base:6000, mul:1.6, max:8, req:{dissolved:15}, fx:{f:'speedMult',k:'mul',v:0.92} },
   // — Spawn / chance —
   { id:'part1', cat:'luck',  name:'Bancs plus fournis',  desc:'+1 paillette à l’écran.',    base:120,  mul:1.8, max:8,  fx:{f:'maxParticles',k:'add',v:1} },
   { id:'spawn1',cat:'luck',  name:'Eaux fertiles',       desc:'Apparition +10% plus rapide.',base:150, mul:1.5, max:10, fx:{f:'spawnMult',k:'mul',v:0.90} },
   { id:'life',  cat:'luck',  name:'Rémanence',           desc:'Les paillettes restent +0.6s.',base:300, mul:1.7, max:5,  fx:{f:'life',k:'add',v:0.6} },
   { id:'luck1', cat:'luck',  name:'Chance du pêcheur',   desc:'Chance de rareté +6%.',      base:500,  mul:1.6, max:10, fx:{f:'luck',k:'add',v:0.06} },
   { id:'shimmer',cat:'luck', name:'Paillettes vives',    desc:'Paillettes plus grosses.',   base:900,  mul:1.6, max:5,  fx:{f:'partSize',k:'add',v:0.12} },
-  { id:'beacon',cat:'luck',  name:'Balise de rareté',    desc:'Révèle la rareté avant de ferrer.', base:8000, mul:1, max:1, fx:{f:'beacon',k:'flag',v:1} },
+  { id:'beacon',cat:'luck',  name:'Balise de rareté',    desc:'Révèle la rareté avant de lancer la capture.', base:8000, mul:1, max:1, fx:{f:'beacon',k:'flag',v:1} },
   { id:'floor1',cat:'luck',  name:'Filet fin',           desc:'Jamais sous Peu commune.', base:5000, mul:1, max:1, req:{dissolved:8},  fx:{f:'rarityFloor',k:'max',v:1} },
   { id:'luck2', cat:'luck',  name:'Fortune abyssale',    desc:'Chance de rareté +8%.', base:15000,mul:1.6, max:8, req:{dissolved:20}, fx:{f:'luck',k:'add',v:0.08} },
   { id:'floor2',cat:'luck',  name:'Grand filet',         desc:'Jamais sous Rare.', base:60000,mul:1, max:1, req:{dissolved:40}, fx:{f:'rarityFloor',k:'max',v:2} },
@@ -2005,7 +2043,7 @@ const FISH_UP = [
   { id:'apidle', cat:'meta',  name:'Rêverie',            desc:'+0.02 AP/min passif par palier atteint.', base:25000, mul:1, max:1, fx:{f:'apIdle',k:'flag',v:1} },
   { id:'dnafish',cat:'meta',  name:'Courant génétique',  desc:'Ta production ADN agrandit la zone verte.', base:20000, mul:1, max:1, fx:{f:'dnaZone',k:'flag',v:1} },
   { id:'collector',cat:'meta',name:'Collectionneur',     desc:'+5% valeur par famille de rareté complétée.', base:22000, mul:1, max:1, fx:{f:'collector',k:'flag',v:1} },
-  { id:'calm',   cat:'meta',  name:'Eaux calmes',        desc:'-12% vitesse curseur (global).', base:16000, mul:1.6, max:5, req:{dissolved:22}, fx:{f:'speedMult',k:'mul',v:0.88} },
+  { id:'calm',   cat:'meta',  name:'Eaux calmes',        desc:'Poisson -12% de vitesse (eaux plus calmes).', base:16000, mul:1.6, max:5, req:{dissolved:22}, fx:{f:'speedMult',k:'mul',v:0.88} },
   { id:'lucky',  cat:'meta',  name:'Trèfle abyssal',     desc:'+10% à tous les gains AP.', base:80000, mul:1, max:1, req:{dissolved:50}, fx:{f:'apMult',k:'mul',v:1.10} },
   { id:'prisme', cat:'meta',  name:'Prisme',             desc:'Les Mythiques apparaissent 2× plus.', base:120000, mul:1, max:1, fx:{f:'prisme',k:'flag',v:1} },
   { id:'deep',   cat:'meta',  name:'Grands fonds',       desc:'+1 paillette et +8% chance.', base:70000, mul:1.8, max:3, req:{dissolved:45}, fx:{f:'maxParticles',k:'add',v:1} },
@@ -2323,21 +2361,27 @@ function drawSwimmers(ctx, w, h, t) {
    ============================================================================ */
 const Pond = (() => {
   let canvas, ctx, W=0, H=0, raf=0, running=false, dpr=1;
-  let particles=[], phase='idle', reel=null, msg='', msgT=0, lastT=0;
+  let particles=[], phase='idle', reel=null, msg='', msgT=0, lastT=0, holding=false;
+  const GRAV=1.25, THRUST=2.7, DAMP=3.2;   // physique de la barre du joueur
 
   function open() {
     $('#fishing-modal').classList.add('visible');
     canvas = $('#pond-canvas'); ctx = canvas.getContext('2d');
     resize(); window.addEventListener('resize', resize);
-    particles=[]; phase='idle'; reel=null; setMsg('Touche une paillette lumineuse pour ferrer');
+    particles=[]; phase='idle'; reel=null; holding=false;
+    setMsg('Touche une paillette lumineuse pour ferrer');
     running=true; lastT=performance.now(); spawnTimer=0;
     canvas.addEventListener('pointerdown', onDown);
+    canvas.addEventListener('pointerup', onUp);
+    canvas.addEventListener('pointercancel', onUp);
+    canvas.addEventListener('pointerleave', onUp);
     loop();
   }
   function close() {
     running=false; cancelAnimationFrame(raf);
     window.removeEventListener('resize', resize);
-    canvas && canvas.removeEventListener('pointerdown', onDown);
+    if (canvas) { canvas.removeEventListener('pointerdown', onDown); canvas.removeEventListener('pointerup', onUp); canvas.removeEventListener('pointercancel', onUp); canvas.removeEventListener('pointerleave', onUp); }
+    holding=false;
     $('#fishing-modal').classList.remove('visible');
     if (typeof saveGame==='function') saveGame();
     if (window.Fishing) { Fishing.renderMare(); }
@@ -2353,12 +2397,11 @@ const Pond = (() => {
   let spawnTimer=0;
   function spawnParticle() {
     const rIdx = rollRarity();
-    const rar = RARITIES[rIdx];
     const m = fMods();
     particles.push({
-      x: 0.1+Math.random()*0.8, y: 0.12+Math.random()*0.6,
+      x: 0.1+Math.random()*0.8, y: 0.12+Math.random()*0.55,
       vx:(Math.random()-0.5)*0.03, vy:(Math.random()-0.5)*0.02,
-      r: (10 + rIdx*2) * (1+m.partSize) , rar:rIdx, creature: rollCreature(rIdx),
+      r: (10 + rIdx*2) * (1+m.partSize), rar:rIdx, creature: rollCreature(rIdx),
       born: Date.now(), life:(3.5 + m.life + rIdx*0.4)*1000, ph:Math.random()*7,
     });
   }
@@ -2367,54 +2410,71 @@ const Pond = (() => {
     const rect = canvas.getBoundingClientRect();
     const mx = (e.clientX-rect.left)/rect.width, my=(e.clientY-rect.top)/rect.height;
     if (phase==='idle') {
-      // cherche la paillette la plus proche du clic
       let best=null,bd=1e9;
-      for (const p of particles){ const dx=(p.x-mx),dy=(p.y-my); const d=dx*dx+dy*dy; const rr=(p.r/ (W/dpr))*1.8; if(d<rr*rr && d<bd){bd=d;best=p;} }
+      for (const p of particles){ const dx=(p.x-mx),dy=(p.y-my); const d=dx*dx+dy*dy; const rr=(p.r/(W/dpr))*2.2; if(d<rr*rr && d<bd){bd=d;best=p;} }
       if (best) startReel(best);
-    } else if (phase==='reel') {
-      attempt();
-    }
+    } else if (phase==='reel') { holding=true; }
   }
+  function onUp(){ holding=false; }
 
+  /* ---- Démarre la capture : mécanique "garder la barre sur le poisson" ---- */
   function startReel(p) {
     const m = fMods();
     const rar = RARITIES[p.rar];
-    let zone = Math.max(0.05, Math.min(0.85, rar.zone + m.zone + (m.dnaZone ? Math.min(0.15, Math.log10(1+dnaPerSecond())/40) : 0)));
-    let speed = rar.speed * m.speedMult;    // cycles/seconde
-    reel = { p, zone, start: Math.random()*(1-zone), speed, pos:0, dir:1,
-      perfect: Math.max(0.06, zone*m.perfect), tries: 1 + m.forgive, done:false };
+    const barH = Math.max(0.10, Math.min(0.60, 0.16 + m.zone));
+    const spdMul = Math.max(0.30, m.speedMult);
+    const fishSpeed = rar.fishSpeed * spdMul;
+    const interval  = rar.interval / Math.max(0.4, Math.min(1, spdMul));  // poisson plus lent = intervalles plus longs = moins chaotique
+    const fill = rar.fillBase * (1 + m.perfect);
+    const drain = rar.drainBase * (1 - Math.min(0.5, 0.05*m.forgive));
+    const grav = GRAV*(m.steady?0.75:1), thrust = THRUST*(m.steady?1.12:1);
+    const start = Math.min(0.5, rar.startBase + 0.08*m.forgive);
+    reel = { p, creature:p.creature, rar:p.rar, barH, fishSpeed, interval, fill, drain, jit:rar.jit,
+      grav, thrust, pos:0.5-barH/2, vel:0, fy:0.5, tgt:0.5, timer:0, prog:start, done:false, startAt:performance.now() };
+    holding=false;
     particles = particles.filter(x=>x!==p);
-    phase='reel'; setMsg('Clique quand le curseur est dans la zone verte'+(m.beacon?` — ${rar.name}`:''));
+    phase='reel';
+    setMsg('Maintiens pour remonter · garde la barre sur le poisson'+(m.beacon?` — ${rar.name}`:''));
   }
 
-  function attempt() {
-    if (!reel || reel.done) return;
-    const m = fMods();
-    const inZone = reel.pos >= reel.start && reel.pos <= reel.start+reel.zone;
-    const center = reel.start + reel.zone/2;
-    const isPerfect = Math.abs(reel.pos-center) <= reel.perfect/2;
-    if (inZone) {
-      reel.done=true;
-      const res = registerCatch(reel.p.creature, isPerfect);
-      let extra = [];
-      // multi-capture
-      if (Math.random() < m.doubleChance) extra.push(rollCreature(reel.p.rar));
-      if (Math.random() < m.tripleChance) extra.push(rollCreature(reel.p.rar));
-      if (isPerfect && m.net && particles.length) { const near=particles[0]; extra.push(near.creature); particles.shift(); }
-      extra.forEach(c=>registerCatch(c, false));
-      syncSwimmers();
-      const c = reel.p.creature; const rar=RARITIES[c.r];
-      flash(`${isPerfect?'PARFAIT ! ':''}${c.name} capturé · +${res.ap} ⭐${extra.length?` (+${extra.length})`:''}`, rar.glow);
-      if (typeof toast==='function') toast(`🎣 <b>${c.name}</b> (${rar.name}) · +${res.ap} ⭐`, 'good');
-      setTimeout(()=>{ phase='idle'; reel=null; setMsg('Touche une paillette lumineuse'); if(window.Fishing)Fishing.afterCatch(); }, 650);
-    } else {
-      reel.tries--;
-      if (reel.tries<=0) {
-        reel.done=true; breakCombo();
-        flash('Échappé…', '#e0603e');
-        setTimeout(()=>{ phase='idle'; reel=null; setMsg('Touche une paillette lumineuse'); }, 600);
-      } else setMsg(`Raté ! Encore ${reel.tries} essai(s)`);
-    }
+  function updateReel(dt) {
+    const r = reel; if (!r || r.done) return;
+    // poisson : mouvement erratique (d'autant plus vif/chaotique que la rareté est haute)
+    r.timer -= dt;
+    if (r.timer<=0){ r.tgt=0.05+Math.random()*0.9; r.timer=r.interval*(0.6+0.8*Math.random()); }
+    r.fy += Math.max(-r.fishSpeed*dt, Math.min(r.fishSpeed*dt, r.tgt-r.fy));
+    r.fy += (Math.random()-0.5)*r.jit*dt*10; r.fy=Math.max(0.02, Math.min(0.98, r.fy));
+    // barre du joueur : gravité vers le bas, poussée vers le haut au maintien
+    const acc = holding ? -r.thrust : r.grav;
+    r.vel += acc*dt; r.vel *= Math.exp(-DAMP*dt); r.pos += r.vel*dt;
+    if (r.pos<0){ r.pos=0; r.vel*=-0.2; } if (r.pos>1-r.barH){ r.pos=1-r.barH; r.vel*=-0.2; }
+    // progression : monte si le poisson est dans la barre, descend sinon
+    const inside = r.fy>=r.pos && r.fy<=r.pos+r.barH;
+    r.prog += (inside ? r.fill : -r.drain)*dt;
+    if (r.prog>=1){ r.prog=1; onCatch(); return; }
+    if (r.prog<=0){ r.prog=0; onEscape(); return; }
+    r._inside = inside;
+  }
+
+  function onCatch() {
+    const r=reel; r.done=true; const m=fMods();
+    const perfect = (performance.now()-r.startAt) < 5000;
+    const res = registerCatch(r.creature, perfect);
+    let extra=[];
+    if (Math.random()<m.doubleChance) extra.push(rollCreature(r.rar));
+    if (Math.random()<m.tripleChance) extra.push(rollCreature(r.rar));
+    if (perfect && m.net && particles.length){ extra.push(particles[0].creature); particles.shift(); }
+    extra.forEach(c=>registerCatch(c,false));
+    syncSwimmers();
+    const c=r.creature, rar=RARITIES[c.r];
+    flash(`${perfect?'PARFAIT ! ':''}${c.name} · +${res.ap} ⭐${extra.length?` (+${extra.length})`:''}`, rar.glow);
+    if (typeof toast==='function') toast(`🎣 <b>${c.name}</b> (${rar.name}) · +${res.ap} ⭐`, 'good');
+    setTimeout(()=>{ phase='idle'; reel=null; holding=false; setMsg('Touche une paillette lumineuse'); if(window.Fishing)Fishing.afterCatch(); }, 700);
+  }
+  function onEscape() {
+    const r=reel; r.done=true; breakCombo();
+    flash('Échappé…', '#e0603e');
+    setTimeout(()=>{ phase='idle'; reel=null; holding=false; setMsg('Touche une paillette lumineuse'); }, 700);
   }
 
   let flashMsg='',flashCol='',flashT=0;
@@ -2424,35 +2484,27 @@ const Pond = (() => {
     if (!running) return;
     const now=performance.now(); const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
     const m = fMods();
-    // fond
     ctx.clearRect(0,0,W,H);
     const bgUrl = assetUrl('dioramaNight')||assetUrl('dioramaDay');
     if (bgUrl){ Pond._bg = Pond._bg||{}; if(!Pond._bg[bgUrl]){const im=new Image();im.src=bgUrl;Pond._bg[bgUrl]=im;} const im=Pond._bg[bgUrl]; if(im.complete&&im.naturalWidth){const sc=Math.max(W/im.width,H/im.height);ctx.globalAlpha=0.5;ctx.drawImage(im,(W-im.width*sc)/2,(H-im.height*sc)/2,im.width*sc,im.height*sc);ctx.globalAlpha=1;} else pondBg(); }
     else pondBg();
 
-    // spawn
     spawnTimer -= dt;
     if (phase==='idle' && particles.length < m.maxParticles && spawnTimer<=0) { spawnParticle(); spawnTimer = (1.1*m.spawnMult)*(0.6+Math.random()*0.8); }
-    // maj + purge paillettes
     const t = now/1000;
-    particles = particles.filter(p => Date.now()-p.born < p.life);
-    for (const p of particles) {
-      p.x += p.vx*dt; p.y += p.vy*dt;
-      if(p.x<0.08||p.x>0.92)p.vx*=-1; if(p.y<0.1||p.y>0.72)p.vy*=-1;
-      drawParticle(p, t);
+    if (phase==='idle') {
+      particles = particles.filter(p => Date.now()-p.born < p.life);
+      for (const p of particles) {
+        p.x += p.vx*dt; p.y += p.vy*dt;
+        if(p.x<0.08||p.x>0.92)p.vx*=-1; if(p.y<0.1||p.y>0.7)p.vy*=-1;
+        drawParticle(p, t);
+      }
+    } else if (phase==='reel' && reel) {
+      updateReel(dt);
+      if (reel) drawReel(reel);
     }
-    // barre de timing
-    if (phase==='reel' && reel) {
-      // avance curseur (ping-pong), steady = ralentit au centre
-      let sp = reel.speed;
-      if (m.steady) sp *= (0.55 + Math.abs(reel.pos-0.5)*0.9);
-      reel.pos += reel.dir * sp * dt;
-      if (reel.pos>=1){reel.pos=1;reel.dir=-1;} if(reel.pos<=0){reel.pos=0;reel.dir=1;}
-      drawReel(reel);
-    }
-    // messages
     drawHudText(m);
-    if (flashMsg && Date.now()-flashT<900) drawFlash();
+    if (flashMsg && Date.now()-flashT<1000) drawFlash();
     raf = requestAnimationFrame(loop);
   }
 
@@ -2468,41 +2520,52 @@ const Pond = (() => {
     ctx.globalAlpha=0.5+0.5*pulse; ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,s*3,0,7); ctx.fill();
     ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(px,py,s*0.5,0,7); ctx.fill();
     ctx.restore();
-    // étincelles pour hautes raretés
     if(p.rar>=3){ ctx.strokeStyle=rar.glow; ctx.lineWidth=1.5*dpr; for(let i=0;i<4;i++){const a=t*2+i*1.57;ctx.beginPath();ctx.moveTo(px+Math.cos(a)*s*1.5,py+Math.sin(a)*s*1.5);ctx.lineTo(px+Math.cos(a)*s*2.6,py+Math.sin(a)*s*2.6);ctx.stroke();} }
   }
 
+  /* ---- Colonne d'eau verticale : barre du joueur (verte) + poisson + jauge ---- */
   function drawReel(r) {
-    const barW=W*0.8, x0=W*0.1, y=H*0.86, hgt=18*dpr;
-    // fond barre
-    ctx.fillStyle='rgba(3,12,20,0.85)'; roundRect(ctx,x0,y-hgt/2,barW,hgt,hgt/2); ctx.fill();
-    ctx.strokeStyle='rgba(62,230,196,0.3)'; ctx.lineWidth=dpr; ctx.stroke();
-    // zone verte
-    const gx=x0+r.start*barW, gw=r.zone*barW;
-    ctx.fillStyle='rgba(62,230,196,0.5)'; roundRect(ctx,gx,y-hgt/2,gw,hgt,hgt/2); ctx.fill();
-    // zone parfaite
-    const pc=r.start+r.zone/2; const pw=r.perfect*barW;
-    ctx.fillStyle='rgba(255,240,180,0.9)'; ctx.fillRect(x0+pc*barW-pw/2, y-hgt/2, pw, hgt);
-    // curseur
-    const mx=x0+r.pos*barW;
-    ctx.fillStyle='#fff'; ctx.fillRect(mx-2*dpr, y-hgt/2-6*dpr, 4*dpr, hgt+12*dpr);
-    ctx.shadowColor='#fff'; ctx.shadowBlur=10*dpr; ctx.fillRect(mx-2*dpr, y-hgt/2-6*dpr, 4*dpr, hgt+12*dpr); ctx.shadowBlur=0;
-    // créature en cours
-    drawCreature(ctx, W/2, H*0.5, Math.min(W,H)*0.09, r.p.creature, performance.now()/1000, 1);
+    const colW=Math.min(W*0.18, 120*dpr), x0=W*0.5-colW/2, y0=H*0.16, colH=H*0.62;
+    const rar=RARITIES[r.rar];
+    // tube
+    ctx.fillStyle='rgba(3,12,20,0.7)'; roundRect(ctx,x0,y0,colW,colH,14*dpr); ctx.fill();
+    ctx.strokeStyle='rgba(62,230,196,0.25)'; ctx.lineWidth=2*dpr; ctx.stroke();
+    // barre du joueur
+    const barY=y0 + r.pos*colH, barPx=r.barH*colH;
+    ctx.fillStyle = r._inside ? 'rgba(62,230,196,0.55)' : 'rgba(62,230,196,0.28)';
+    roundRect(ctx,x0+3*dpr,barY,colW-6*dpr,barPx,10*dpr); ctx.fill();
+    ctx.strokeStyle='rgba(126,245,220,0.8)'; ctx.lineWidth=2*dpr; ctx.stroke();
+    // poisson (créature)
+    drawCreature(ctx, x0+colW/2, y0 + r.fy*colH, colW*0.32, r.creature, performance.now()/1000, 1);
+    // jauge de progression (droite du tube)
+    const gx=x0+colW+14*dpr, gw=14*dpr;
+    ctx.fillStyle='rgba(3,12,20,0.7)'; roundRect(ctx,gx,y0,gw,colH,gw/2); ctx.fill();
+    ctx.strokeStyle='rgba(255,224,138,0.4)'; ctx.lineWidth=dpr; ctx.stroke();
+    const ph=r.prog*colH;
+    const gg=ctx.createLinearGradient(0,y0+colH-ph,0,y0+colH); gg.addColorStop(0,'#fff2c2'); gg.addColorStop(1,'#ffcf5c');
+    ctx.fillStyle=gg; roundRect(ctx,gx,y0+colH-ph,gw,ph,gw/2); ctx.fill();
+    // aperçu grande créature (fond, discret)
+    ctx.globalAlpha=0.12; drawCreature(ctx, W*0.22, H*0.5, Math.min(W,H)*0.16, r.creature, performance.now()/1000, 1); ctx.globalAlpha=1;
+    // libellé rareté
+    ctx.fillStyle=rar.glow; ctx.font=`bold ${13*dpr}px 'Exo 2',sans-serif`; ctx.textAlign='center';
+    ctx.fillText(`${r.creature.name} · ${rar.name}`, x0+colW/2, y0-12*dpr);
+    ctx.fillStyle='rgba(255,224,138,0.9)'; ctx.font=`bold ${12*dpr}px 'JetBrains Mono',monospace`;
+    ctx.fillText(`${Math.round(r.prog*100)}%`, gx+gw/2, y0+colH+18*dpr);
+    ctx.textAlign='start';
   }
 
   function drawHudText(m) {
     ctx.fillStyle='rgba(223,245,240,0.9)'; ctx.font=`${14*dpr}px 'Exo 2',sans-serif`; ctx.textAlign='center';
-    ctx.fillText(msg, W/2, H*0.08);
+    ctx.fillText(msg, W/2, H*0.075);
     ctx.fillStyle='rgba(255,224,138,0.95)'; ctx.font=`bold ${16*dpr}px 'JetBrains Mono',monospace`;
-    ctx.fillText(`⭐ ${fmt(state.agePoints||0)}/100   ·   Combo ×${state.fishing.combo}`, W/2, H*0.14);
+    ctx.fillText(`⭐ ${fmt(state.agePoints||0)}/100   ·   Combo ×${state.fishing.combo}`, W/2, H*0.13);
     ctx.textAlign='start';
   }
   function drawFlash() {
-    const a=1-(Date.now()-flashT)/900;
+    const a=1-(Date.now()-flashT)/1000;
     ctx.save(); ctx.globalAlpha=a; ctx.textAlign='center';
     ctx.fillStyle=flashCol; ctx.font=`bold ${22*dpr}px 'Exo 2',sans-serif`;
-    ctx.fillText(flashMsg, W/2, H*0.3 - (1-a)*30*dpr); ctx.restore(); ctx.textAlign='start';
+    ctx.fillText(flashMsg, W/2, H*0.9 - (1-a)*20*dpr); ctx.restore(); ctx.textAlign='start';
   }
 
   return { open, close, isOpen:()=>running };
@@ -2610,11 +2673,11 @@ const Fishing = (() => {
         <button id="open-pond" class="mare-play">🎣 Pêcher dans la Mare</button>
         <div class="mare-stats">
           <div><b>${fmt(state.agePoints||0)}</b>/100 ⭐ · Palier ${p}/20</div>
-          <div class="mare-sub">${pInfo.name} · ${uniq}/30 créatures · record combo ×${state.fishing.bestCombo}</div>
+          <div class="mare-sub">${pInfo.name} · ${uniq}/${CREATURES.length} créatures · record combo ×${state.fishing.bestCombo}</div>
         </div>
-        <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/30)</button>
+        <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/${CREATURES.length})</button>
       </div>
-      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur = rareté, ferre dans la zone verte. Améliore ta pêche ci-dessous (ADN + créatures dissoutes).</div>
+      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
       <div class="fup-list">`;
     for (const cat of Object.keys(FISH_CATS)) {
       const ups = FISH_UP.filter(u=>u.cat===cat);
