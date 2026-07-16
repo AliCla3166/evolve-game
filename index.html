@@ -1552,6 +1552,35 @@ const Diorama = (() => {
   }
   let pulse = 0;
   function pulseNow() { pulse = 1; }
+
+  /* ---------- Animation de passage de palier : explosion de pépites ---------- */
+  let burst = null; // { t, dur, parts }
+  function evolutionBurst() {
+    const n = 46;
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const speed = (0.5 + Math.random() * 1.8) * (devicePixelRatio || 1);
+      const gold = Math.random() < 0.55;
+      parts.push({
+        x: 0, y: 0,
+        vx: Math.cos(a) * speed, vy: Math.sin(a) * speed - 0.3 * (devicePixelRatio||1),
+        r: (2 + Math.random() * 4) * (devicePixelRatio || 1),
+        hue: gold ? (38 + Math.random() * 22) : (160 + Math.random() * 30),
+        sat: gold ? 95 : 85,
+        spin: (Math.random() - 0.5) * 0.2,
+      });
+    }
+    burst = { t: 0, dur: 1.4, parts };
+  }
+  // Multiplicateur d'échelle temporaire (petit "pop") pendant les ~0.5 premières secondes du burst
+  function evoScale() {
+    if (!burst) return 1;
+    const p = Math.min(1, burst.t / 0.5);
+    if (p >= 1) return 1;
+    // courbe pop : monte vite à 1.22 puis redescend à 1
+    return 1 + 0.22 * Math.sin(p * Math.PI);
+  }
   function draw() {
     if (!ctx) return;
     t += 0.016;
@@ -1624,6 +1653,40 @@ const Diorama = (() => {
       pulse -= 0.02;
       if (pulse < 0) pulse = 0;
     }
+
+    // évolution de palier : flash + explosion de pépites dorées/teal autour de la créature
+    if (burst) {
+      burst.t += 0.016;
+      const prog = Math.min(1, burst.t / burst.dur);
+      const cx = w/2, cy = h*0.55;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      // flash annulaire au tout début
+      if (prog < 0.35) {
+        const ringP = prog / 0.35;
+        ctx.strokeStyle = `rgba(255,225,150,${(1 - ringP) * 0.85})`;
+        ctx.lineWidth = 5 * devicePixelRatio;
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringP * Math.max(w, h) * 0.4, 0, Math.PI * 2);
+        ctx.stroke();
+        // voile lumineux plein écran très bref
+        ctx.fillStyle = `rgba(255,240,200,${(1 - ringP) * 0.12})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+      // pépites qui explosent puis retombent en s'estompant
+      for (const pt of burst.parts) {
+        pt.x += pt.vx; pt.y += pt.vy;
+        pt.vy += 0.018 * (devicePixelRatio || 1); // légère gravité
+        pt.vx *= 0.985; pt.vy *= 0.985;
+        const alpha = Math.max(0, 1 - prog);
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${pt.hue},${pt.sat}%,70%,${alpha})`;
+        ctx.arc(cx + pt.x, cy + pt.y, pt.r * (1 - prog * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      if (prog >= 1) burst = null;
+    }
     requestAnimationFrame(draw);
   }
   function drawCell() {
@@ -1677,7 +1740,7 @@ const Diorama = (() => {
     ctx.arc(0,0,R*0.18,0,Math.PI*2); ctx.fill();
     ctx.restore();
   }
-  return { init, draw, pulseNow, reseedBg: () => {
+  return { init, draw, pulseNow, evolutionBurst, evoScale, reseedBg: () => {
     const url = assetUrl('dioramaDay');
     if (url) { const im = new Image(); im.src = url; Diorama._bgImg = im; }
     if (drawCell._imgs) drawCell._imgs = {};
@@ -2007,32 +2070,32 @@ const CREATURES = [
 ];
 
 /* ---------------------------------------------------------------------------
-   PALIERS (20) — évolution visuelle de la créature principale, tous les 5 AP.
+   PALIERS (20) — évolution visuelle de la créature principale, tous les 50 AP.
    De la cellule au poisson extraterrestre. Slot d'asset : palier_N.
    --------------------------------------------------------------------------- */
 const PALIERS = [
-  { n:1,  ap:5,   name:'Protocellule' },
-  { n:2,  ap:10,  name:'Cellule nucléée' },
-  { n:3,  ap:15,  name:'Colonie ciliée' },
-  { n:4,  ap:20,  name:'Blastula' },
-  { n:5,  ap:25,  name:'Larve segmentée' },
-  { n:6,  ap:30,  name:'Proto-invertébré' },
-  { n:7,  ap:35,  name:'Ver nageur' },
-  { n:8,  ap:40,  name:'Créature à branchies' },
-  { n:9,  ap:45,  name:'Poisson sans mâchoire' },
-  { n:10, ap:50,  name:'Poisson cartilagineux' },
-  { n:11, ap:55,  name:'Poisson à nageoires lobées' },
-  { n:12, ap:60,  name:'Poisson bioluminescent' },
-  { n:13, ap:65,  name:'Poisson abyssal' },
-  { n:14, ap:70,  name:'Poisson cuirassé' },
-  { n:15, ap:75,  name:'Poisson cristallin' },
-  { n:16, ap:80,  name:'Poisson énergétique' },
-  { n:17, ap:85,  name:'Poisson-esprit' },
-  { n:18, ap:90,  name:'Poisson exotique' },
-  { n:19, ap:95,  name:'Poisson stellaire' },
-  { n:20, ap:100, name:'Poisson extraterrestre' },
+  { n:1,  ap:50,   name:'Protocellule' },
+  { n:2,  ap:100,  name:'Cellule nucléée' },
+  { n:3,  ap:150,  name:'Colonie ciliée' },
+  { n:4,  ap:200,  name:'Blastula' },
+  { n:5,  ap:250,  name:'Larve segmentée' },
+  { n:6,  ap:300,  name:'Proto-invertébré' },
+  { n:7,  ap:350,  name:'Ver nageur' },
+  { n:8,  ap:400,  name:'Créature à branchies' },
+  { n:9,  ap:450,  name:'Poisson sans mâchoire' },
+  { n:10, ap:500,  name:'Poisson cartilagineux' },
+  { n:11, ap:550,  name:'Poisson à nageoires lobées' },
+  { n:12, ap:600,  name:'Poisson bioluminescent' },
+  { n:13, ap:650,  name:'Poisson abyssal' },
+  { n:14, ap:700,  name:'Poisson cuirassé' },
+  { n:15, ap:750,  name:'Poisson cristallin' },
+  { n:16, ap:800,  name:'Poisson énergétique' },
+  { n:17, ap:850,  name:'Poisson-esprit' },
+  { n:18, ap:900,  name:'Poisson exotique' },
+  { n:19, ap:950,  name:'Poisson stellaire' },
+  { n:20, ap:1000, name:'Poisson extraterrestre' },
 ];
-function currentPalier() { return Math.max(0, Math.min(20, Math.floor((state.agePoints||0) / 5))); }
+function currentPalier() { return Math.max(0, Math.min(20, Math.floor((state.agePoints||0) / 50))); }
 
 /* ---------------------------------------------------------------------------
    50 AMÉLIORATIONS — inspirées des meilleurs idle (accuracy, luck, combo,
@@ -2324,7 +2387,8 @@ function drawMainCreature(ctx, w, h, t) {
   const url = assetUrl('palier_' + p) || assetUrl('palier_' + nearestPalierAsset(p)) || assetUrl('cellStage' + Math.min(5, Math.max(1, Math.ceil(p/4)||1)));
   const base = Math.min(w, h) * (0.14 + p * 0.006);
   const breathe = 1 + Math.sin(t*1.2)*0.04;
-  const R = base * breathe;
+  const evoPop = (typeof Diorama!=='undefined' && Diorama.evoScale) ? Diorama.evoScale() : 1;
+  const R = base * breathe * evoPop;
   if (url) {
     drawMainCreature._imgs = drawMainCreature._imgs || {};
     if (drawMainCreature._cur !== url) { const im = new Image(); im.src = url; drawMainCreature._imgs[url] = im; drawMainCreature._cur = url; }
@@ -2718,8 +2782,10 @@ const Fishing = (() => {
     if (p > (state.fishing.lastPalier||0)) {
       state.fishing.lastPalier = p;
       const nm = (typeof palierName==='function') ? palierName(p) : (PALIERS[p-1]&&PALIERS[p-1].name);
-      if (nm) toast(`🧬 Palier ${p}/20 — <b>${nm}</b> !`, 'good');
-      Diorama && Diorama.pulseNow && Diorama.pulseNow();
+      if (nm) toast(`🧬 Évolution ! Palier ${p}/20 — <b>${nm}</b> !`, 'good');
+      // Grosse mise en scène : explosion de pépites + pop d'échelle sur la créature
+      if (Diorama && Diorama.evolutionBurst) Diorama.evolutionBurst();
+      else if (Diorama && Diorama.pulseNow) Diorama.pulseNow();
     }
     renderMare();
   }
