@@ -752,7 +752,7 @@ function totalGenerators(s) {
    PARAMÈTRES DE BOOST (la logique qui pousse à logger ses habitudes)
    --------------------------------------------------------------------------- */
 const TUNING = {
-  agePointThreshold: 100,
+  agePointThreshold: 1000,
   vitalPerHabit: 0.20,
   streakPerDay: 0.02,
   streakCap: 0.50,
@@ -1354,8 +1354,7 @@ function doCheckin() {
     perfect = true;
     state.stats.perfectDays += 1;
     state.perfectBoostEndsAt = Date.now() + TUNING.perfectDayDurationH * 3600 * 1000;
-    seedGain = 1;
-    addSeeds(1);
+    // Note : la Graine 🌱 de jour parfait a été retirée (plus de seedGain/addSeeds ici).
   }
 
   return { already: false, pbGain, count, total: HABITS.length, perfect, seedGain, streak: state.streak };
@@ -1851,7 +1850,7 @@ function renderCheckin() {
   const count = previewCheckinCount();
   html += `<div class="ci-summary">
     <div>Habitudes validées : <b>${count}/${HABITS.length}</b> → Pulsation ×${(1+count*TUNING.vitalPerHabit).toFixed(1)}</div>
-    <div>Gain : <b>+${totalPb} 💠</b>${count>=HABITS.length?' · <span class="ci-perfect">Jour parfait ✨ +1 🌱</span>':''}</div>
+    <div>Gain : <b>+${totalPb} 💠</b>${count>=HABITS.length?` · <span class="ci-perfect">Jour parfait ✨ ×${TUNING.perfectDayMult} production ${TUNING.perfectDayDurationH}h</span>`:''}</div>
     <button id="ci-validate" ${doneToday?'disabled':''}>${doneToday?'Check-in déjà fait aujourd\'hui':'✅ Valider le check-in du jour'}</button>
   </div>`;
   el.innerHTML = html;
@@ -2872,7 +2871,7 @@ const AGES = [
 function curAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1)-1)]; }
 function nextAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1))]; }
 function palierName(n) { const a=curAge(); return (a.paliers[n-1]) || ('Palier '+n); }
-function ageThreshold() { return (typeof TUNING!=='undefined' ? TUNING.agePointThreshold : 100); }
+function ageThreshold() { return (typeof TUNING!=='undefined' ? TUNING.agePointThreshold : 1000); }
 function canAscend() { return (state.agePoints||0) >= ageThreshold(); }
 
 function ensureMeta() {
@@ -3528,7 +3527,7 @@ function validateCheckin() {
   Diorama.pulseNow();
   $('#checkin-modal').classList.remove('visible');
   let msg = `Check-in validé : <b>+${r.pbGain} 💠</b> · ${r.count}/${r.total} habitudes`;
-  if (r.perfect) msg += ` · <b>Jour parfait ✨ ×${TUNING.perfectDayMult} 1h + 1 🌱</b>`;
+  if (r.perfect) msg += ` · <b>Jour parfait ✨ ×${TUNING.perfectDayMult} ${TUNING.perfectDayDurationH}h</b>`;
   toast(msg, 'good');
   if (r.streak >= 2) toast(`🔥 Élan : ${r.streak} jours`, 'good');
   checkAchievements();
