@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#020814">
+<title>EVOLVE — Cellule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   EVOLVE — style.css  (DA : sublime sombre mais chaleureux)
+   Palette : bg #020814 · primary #0B3D45 · accent #3EE6C4
+   ============================================================================ */
+:root{
+  --bg:#020814; --bg2:#061421; --primary:#0B3D45; --accent:#3EE6C4;
+  --accent2:#7ef5dc; --gold:#ffd27a; --pb:#8fd0ff; --ap:#ffe08a; --seed:#9dff9d;
+  --violet:#c48bff; --danger:#e0603e;
+  --txt:#dff5f0; --muted:#7fa39c; --line:rgba(62,230,196,.14);
+  --card:rgba(10,32,38,.72); --card2:rgba(8,24,30,.9);
+  --shadow:0 8px 30px rgba(0,0,0,.45);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Exo 2',system-ui,sans-serif;
+  background:radial-gradient(1200px 800px at 50% -10%, #072330 0%, var(--bg) 55%);
+  color:var(--txt); overflow:hidden; -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;background:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(62,230,196,.2);border-radius:8px}
+
+/* ---------- Splash ---------- */
+#splash{position:fixed;inset:0;z-index:200;background:var(--bg);display:grid;place-items:center;transition:opacity .6s}
+#splash.hidden{opacity:0;pointer-events:none}
+.splash-logo{font-weight:800;font-size:min(16vw,90px);letter-spacing:.15em;
+  background:linear-gradient(180deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(62,230,196,.4)}
+.splash-sub{text-align:center;color:var(--muted);letter-spacing:.3em;margin-top:.4em;font-size:14px;text-transform:uppercase}
+.splash-loader{width:120px;height:3px;margin:26px auto 0;background:var(--line);border-radius:3px;overflow:hidden;position:relative}
+.splash-loader:after{content:'';position:absolute;inset:0;width:40%;background:var(--accent);animation:load 1s infinite}
+@keyframes load{0%{left:-40%}100%{left:100%}}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;top:0;left:0;right:0;height:58px;z-index:60;display:flex;align-items:center;gap:16px;
+  padding:0 14px;background:linear-gradient(180deg,rgba(3,12,20,.96),rgba(3,12,20,.7));
+  border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.hud-left{display:flex;flex-direction:column;line-height:1}
+.hud-title{font-weight:800;letter-spacing:.14em;color:var(--accent);font-size:18px}
+.hud-age{font-size:11px;color:var(--muted);margin-top:3px}
+.hud-res{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+.res{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px;font-variant-numeric:tabular-nums}
+.res-ic{font-size:16px}
+.res-val{font-weight:700;font-family:'JetBrains Mono',monospace}
+.res-rate{font-size:11px;color:var(--accent);opacity:.85}
+.res-dna .res-val{color:var(--accent2)}
+.res-pb .res-val{color:var(--pb)}
+.res-ap .res-val{color:var(--ap)}
+.res-seed .res-val{color:var(--seed)}
+#dev-open{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:18px;opacity:.6}
+#dev-open:hover{opacity:1}
+
+#hud-chips{position:fixed;top:60px;left:0;right:0;z-index:55;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:6px;pointer-events:none}
+.chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(6,20,26,.85);backdrop-filter:blur(6px)}
+.chip.vital{color:var(--accent2)} .chip.streak{color:var(--gold)} .chip.perfect{color:#fff;background:rgba(196,139,255,.25);border-color:rgba(196,139,255,.5)} .chip.boost{color:var(--pb)}
+
+/* ---------- Layout ---------- */
+#stage{position:fixed;top:58px;bottom:0;left:0;right:0;display:flex}
+#diorama-wrap{position:relative;flex:1;min-width:0;overflow:hidden;cursor:pointer}
+#diorama-canvas{position:absolute;inset:0;width:100%;height:100%}
+#diorama-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);
+  background:rgba(3,12,20,.5);padding:4px 12px;border-radius:999px;pointer-events:none;letter-spacing:.05em}
+
+.cta-checkin{position:absolute;top:50px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--accent),#2bbfa0);color:#04211c;font-weight:800;
+  padding:12px 22px;border-radius:999px;box-shadow:0 6px 24px rgba(62,230,196,.35);font-size:15px;
+  animation:pulseGlow 3s infinite}
+@keyframes pulseGlow{0%,100%{box-shadow:0 6px 24px rgba(62,230,196,.3)}50%{box-shadow:0 6px 34px rgba(62,230,196,.6)}}
+.cta-checkin:active{transform:translateX(-50%) scale(.96)}
+
+#agebar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:min(560px,86%);text-align:center}
+#agebar-track{height:12px;border-radius:999px;background:rgba(3,12,20,.7);border:1px solid var(--line);overflow:hidden}
+#agebar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--ap),#fff2c2);box-shadow:0 0 12px var(--ap);transition:width .6s}
+#agebar-label{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.03em}
+
+/* ---------- Side ---------- */
+#side{width:min(430px,42vw);display:flex;flex-direction:column;background:linear-gradient(180deg,var(--bg2),var(--bg));border-left:1px solid var(--line)}
+#nav{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.nav-btn{flex:1;min-width:70px;font-size:12px;font-weight:600;padding:9px 6px;border-radius:10px;color:var(--muted);border:1px solid transparent}
+.nav-btn.active{color:var(--accent);background:var(--card);border-color:var(--line)}
+.panels{flex:1;overflow-y:auto;padding:10px}
+.panel{display:none} .panel.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.panel-head h2{font-size:16px;font-weight:700}
+#buymode{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--txt);font-weight:600}
+
+/* ---------- Générateurs ---------- */
+.gen-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:10px;margin-bottom:8px;transition:transform .1s,border-color .2s}
+.gen-row.affordable{border-color:rgba(62,230,196,.4)}
+.gen-row.locked{opacity:.45}
+.gen-ic{width:44px;height:44px;display:grid;place-items:center;font-size:26px;background:rgba(62,230,196,.06);border-radius:10px;flex-shrink:0}
+.slot-img{object-fit:contain;border-radius:8px}
+.gen-main{flex:1;min-width:0}
+.gen-name{font-weight:700;font-size:14px}
+.gen-count{color:var(--accent);font-family:'JetBrains Mono',monospace;margin-left:6px}
+.gen-desc{font-size:11px;color:var(--muted);margin:2px 0}
+.gen-rate{font-size:11px;color:var(--accent);opacity:.8;font-family:'JetBrains Mono',monospace}
+.gen-buy{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(62,230,196,.1);
+  border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:88px}
+.gen-buy:not([disabled]):hover{background:rgba(62,230,196,.2)}
+.gen-buy[disabled]{opacity:.4;cursor:not-allowed}
+.buy-label{font-size:11px;font-weight:700}
+.buy-cost{font-size:12px;color:var(--accent2);font-family:'JetBrains Mono',monospace}
+
+/* ---------- Techno ---------- */
+.tech-branch{margin-bottom:16px}
+.tech-branch-head{font-weight:800;font-size:13px;letter-spacing:.04em;color:var(--bc);margin-bottom:8px;
+  padding-bottom:6px;border-bottom:1px solid var(--line)}
+.tech-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.tech-card.owned{opacity:.65;border-color:rgba(62,230,196,.3)}
+.tech-card.affordable{border-color:rgba(62,230,196,.45)}
+.tech-card.muted{opacity:.8}
+.tech-name{font-weight:700;font-size:13px}
+.tech-lvl{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.tech-desc{font-size:11px;color:var(--muted);margin:3px 0 8px}
+.tech-foot{display:flex;justify-content:flex-end}
+.tech-buy{background:rgba(62,230,196,.12);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px;color:var(--accent2);font-family:'JetBrains Mono',monospace}
+.tech-buy[disabled]{opacity:.4;cursor:not-allowed}
+.tech-buy:not([disabled]):hover{background:rgba(62,230,196,.22)}
+.tech-done{font-size:12px;color:var(--accent);font-weight:700}
+
+/* ---------- Boutique ---------- */
+.shop-intro,.mg-intro,.ach-intro{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.shop-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.shop-row.affordable{border-color:rgba(143,208,255,.4)}
+.shop-ic{font-size:24px;width:40px;text-align:center}
+.shop-main{flex:1}.shop-name{font-weight:700;font-size:13px}.shop-desc{font-size:11px;color:var(--muted)}
+.shop-buy{background:rgba(143,208,255,.12);border:1px solid rgba(143,208,255,.3);border-radius:8px;padding:8px 12px;font-weight:700;color:var(--pb)}
+.shop-buy[disabled]{opacity:.4;cursor:not-allowed}
+
+/* ---------- Mini-jeux ---------- */
+.mg-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.mg-card.locked{opacity:.5}
+.mg-card.unlocked{border-color:rgba(196,139,255,.4)}
+.mg-ic{font-size:30px}
+.mg-main{flex:1}.mg-name{font-weight:700}
+.mg-tag{font-size:10px;color:var(--violet);border:1px solid rgba(196,139,255,.4);border-radius:6px;padding:1px 6px;margin-left:6px}
+.mg-desc{font-size:11px;color:var(--muted);margin-top:3px}
+.mg-status{font-size:11px;color:var(--muted)}
+.mg-soon{color:var(--violet)}
+
+/* ---------- Succès ---------- */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.ach{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.ach.locked{opacity:.4}
+.ach.got{border-color:rgba(255,210,122,.4)}
+.ach-ic{font-size:24px}
+.ach-name{font-size:10px;font-weight:600;margin-top:4px;color:var(--muted)}
+.ach.got .ach-name{color:var(--gold)}
+
+/* ---------- Modales ---------- */
+.modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(2,8,20,.7);backdrop-filter:blur(4px);padding:16px}
+.modal.visible{display:grid;animation:fade .2s}
+.modal-box{background:var(--card2);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  width:min(520px,96vw);max-height:88vh;overflow-y:auto;padding:18px}
+.modal-box.small{width:min(400px,94vw);text-align:center}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.modal-head h2{font-size:18px}
+#checkin-close,#dev-close{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:16px}
+.modal-note{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+#offline-text{margin:14px 0 18px;line-height:1.6;font-size:15px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#2bbfa0);color:#04211c;font-weight:800;padding:11px 22px;border-radius:12px}
+.btn-danger{background:rgba(224,96,62,.15);border:1px solid rgba(224,96,62,.4);color:#ff9c82;padding:10px 16px;border-radius:10px;font-weight:700}
+
+/* ---------- Check-in ---------- */
+.ci-goal{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px}
+.ci-goal input{width:80px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px;color:var(--txt);font-weight:700;text-align:center}
+.ci-habit{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;transition:border-color .2s}
+.ci-habit.valid{border-color:rgba(62,230,196,.5);background:rgba(62,230,196,.05)}
+.ci-h-head{display:flex;align-items:center;gap:8px}
+.ci-h-ic{font-size:20px}.ci-h-name{font-weight:700;flex:1}
+.ci-h-pb{font-size:12px;font-weight:700;color:var(--pb);font-family:'JetBrains Mono',monospace}
+.ci-h-desc{font-size:11px;color:var(--muted);margin:4px 0 8px}
+.ci-cal{display:flex;gap:8px}
+.ci-cal input{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-weight:600}
+.ci-cal-toggle{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700}
+.ci-cal-toggle.on{background:rgba(62,230,196,.2);color:var(--accent);border-color:rgba(62,230,196,.4)}
+.ci-stepper{display:flex;align-items:center;gap:10px}
+.ci-stepper input[type=range]{flex:1;accent-color:var(--accent)}
+.ci-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent2);min-width:80px;text-align:right}
+.ci-counter{display:flex;align-items:center;gap:10px}
+.ci-counter button{width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:700}
+.ci-counter .ci-val{min-width:30px;text-align:center}
+.ci-cap{font-size:11px;color:var(--muted)}
+.ci-summary{position:sticky;bottom:-18px;background:var(--card2);border-top:1px solid var(--line);padding:12px 4px 4px;margin-top:6px;font-size:13px;line-height:1.6}
+.ci-perfect{color:var(--violet);font-weight:700}
+#ci-validate{width:100%;margin-top:10px;background:linear-gradient(135deg,var(--accent),#2bbfa0);color:#04211c;font-weight:800;padding:13px;border-radius:12px;font-size:15px}
+#ci-validate[disabled]{opacity:.5;cursor:not-allowed;background:var(--card)}
+
+/* ---------- Toasts / floats ---------- */
+#toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:92vw}
+.toast{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:13px;
+  box-shadow:var(--shadow);opacity:0;transform:translateY(14px);transition:.35s}
+.toast.show{opacity:1;transform:none}
+.toast.good{border-color:rgba(62,230,196,.5)}
+.toast.bad{border-color:rgba(224,96,62,.5)}
+.float{position:fixed;z-index:130;pointer-events:none;font-weight:800;font-family:'JetBrains Mono',monospace;
+  animation:floatUp 1.2s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.tap-float{color:var(--accent2);font-size:15px}
+.golden-float{color:var(--gold);font-size:20px}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(1.3)}}
+
+/* ---------- Nutriment doré ---------- */
+.golden{position:fixed;z-index:70;width:64px;height:64px;border-radius:50%;font-size:40px;display:grid;place-items:center;
+  background:radial-gradient(circle,rgba(255,210,122,.5),rgba(255,210,122,0));box-shadow:0 0 30px rgba(255,210,122,.7);
+  animation:goldBob 1.4s infinite,goldSpawn .3s;filter:drop-shadow(0 0 8px var(--gold))}
+.golden img{width:56px;height:56px}
+@keyframes goldBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes goldSpawn{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- DEV overlay ---------- */
+#dev-overlay{position:fixed;inset:0;z-index:150;display:none;background:rgba(2,8,20,.85);backdrop-filter:blur(6px);padding:16px}
+#dev-overlay.visible{display:grid;place-items:center}
+.dev-box{background:var(--card2);border:1px solid var(--line);border-radius:18px;width:min(1000px,96vw);height:min(88vh,900px);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.dev-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dev-tabs{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.dev-tab{padding:8px 14px;border-radius:10px;color:var(--muted);font-weight:600;font-size:13px;border:1px solid transparent}
+.dev-tab.active{color:var(--accent);background:var(--card);border-color:var(--line)}
+.dev-page{display:none;flex:1;overflow-y:auto;padding:14px 18px}
+.dev-page.active{display:block}
+.dev-asset-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.dev-asset-progress{flex:1;min-width:140px;height:10px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+#dev-asset-progress-bar{height:100%;width:0;background:var(--accent);transition:width .3s}
+#dev-asset-progress-txt{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--accent)}
+.dev-asset-bar select,.dev-asset-bar button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600}
+.dev-asset-help{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+#dev-asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.asset-card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.asset-card.done{border-color:rgba(62,230,196,.4)}
+.asset-card.missing{border-color:rgba(224,96,62,.25)}
+.asset-preview{height:120px;background:repeating-conic-gradient(#0a1a20 0% 25%,#07141a 0% 50%) 50%/20px 20px;display:grid;place-items:center}
+.asset-preview img{max-width:100%;max-height:100%;object-fit:contain}
+.asset-ph{color:var(--muted);font-size:24px}
+.asset-info{padding:10px 12px;flex:1}
+.asset-label{font-weight:700;font-size:13px}
+.asset-meta{font-size:11px;color:var(--muted);margin:3px 0}
+.asset-meta b{color:var(--accent2);font-family:'JetBrains Mono',monospace}
+.asset-cat{color:var(--violet)}
+.asset-represents{font-size:11px;color:var(--muted);margin-bottom:6px}
+.asset-prompt summary{font-size:11px;color:var(--accent);cursor:pointer}
+.asset-prompt-text{font-size:11px;color:var(--txt);background:var(--bg2);border-radius:8px;padding:8px;margin-top:6px;line-height:1.5;user-select:text}
+.asset-refs{font-size:10px;color:var(--muted);margin-top:4px}
+.asset-actions{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.asset-upload{background:rgba(62,230,196,.12);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--accent2)}
+.asset-del{background:rgba(224,96,62,.12);border:1px solid rgba(224,96,62,.3);border-radius:8px;padding:7px 10px;font-size:12px;color:#ff9c82}
+.asset-copy{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px}
+.dev-save-info{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;line-height:1.7;margin-bottom:12px}
+.dev-save-actions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.dev-lbl{font-size:12px;color:var(--muted)}
+#dev-import-text{width:100%;height:100px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:6px;resize:vertical}
+.dev-page h3{font-size:14px;margin:14px 0 8px}
+.dev-btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.dev-btn-row button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px}
+.dev-btn-row button:hover{border-color:rgba(62,230,196,.4)}
+
+/* ---------- Responsive ---------- */
+@media(max-width:820px){
+  #stage{flex-direction:column}
+  #diorama-wrap{height:38vh;flex:none}
+  #side{width:100%;flex:1;border-left:none;border-top:1px solid var(--line)}
+  .hud-res{gap:6px}
+  .res{padding:5px 9px;font-size:13px}
+  .res-rate{display:none}
+  #agebar{bottom:8px}
+  .cta-checkin{top:auto;bottom:56px;font-size:14px;padding:10px 18px}
+}
+@media(max-width:820px){ .res-seed{display:none} }
+
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash"><div class="splash-inner"><div class="splash-logo">EVOLVE</div><div class="splash-sub">de la cellule au divin</div><div class="splash-loader"></div></div></div>
+
+<!-- Barre du haut : ressources -->
+<header id="hud">
+  <div class="hud-left">
+    <div class="hud-title">EVOLVE</div>
+    <div class="hud-age">Âge 1 · Cellule</div>
+  </div>
+  <div class="hud-res">
+    <div class="res res-dna" title="ADN — ressource-mère">
+      <span class="res-ic">🧬</span><span class="res-val" id="hud-dna">0</span><span class="res-rate" id="hud-dna-rate">0/s</span>
+    </div>
+    <div class="res res-pb" title="Points Bonus — issus de tes habitudes">
+      <span class="res-ic">💠</span><span class="res-val" id="hud-pb">0</span>
+    </div>
+    <div class="res res-ap" title="Points d'Âge — la monnaie suprême">
+      <span class="res-ic">⭐</span><span class="res-val" id="hud-ap">0</span>
+    </div>
+    <div class="res res-seed" title="Graines de mutation — jours parfaits">
+      <span class="res-ic">🌱</span><span class="res-val" id="hud-seed">0</span>
+    </div>
+  </div>
+  <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
+</header>
+
+<div id="hud-chips"></div>
+
+<!-- Corps -->
+<main id="stage">
+  <!-- Diorama vivant -->
+  <section id="diorama-wrap">
+    <canvas id="diorama-canvas"></canvas>
+    <div id="diorama-hint">Touche la cellule pour la stimuler</div>
+    <button id="open-checkin" class="cta-checkin">🌅 Check-in du jour</button>
+    <div id="agebar">
+      <div id="agebar-track"><div id="agebar-fill"></div></div>
+      <div id="agebar-label">Âge 1 · Cellule</div>
+    </div>
+  </section>
+
+  <!-- Panneaux -->
+  <section id="side">
+    <nav id="nav">
+      <button class="nav-btn active" data-panel="generators">🧫 Organites</button>
+      <button class="nav-btn" data-panel="techs">🔬 Recherche</button>
+      <button class="nav-btn" data-panel="shop">💠 Boutique</button>
+      <button class="nav-btn" data-panel="minigames">🎮 Mini-jeux</button>
+      <button class="nav-btn" data-panel="achievements">🏆 Succès</button>
+    </nav>
+
+    <div class="panels">
+      <div class="panel active" id="panel-generators-wrap">
+        <div class="panel-head">
+          <h2>🧫 Organites</h2>
+          <select id="buymode" title="Quantité par achat">
+            <option value="1">×1</option><option value="10">×10</option>
+            <option value="100">×100</option><option value="max">Max</option>
+          </select>
+        </div>
+        <div id="panel-generators"></div>
+      </div>
+
+      <div class="panel" id="panel-techs-wrap">
+        <div class="panel-head"><h2>🔬 Recherche technologique</h2></div>
+        <div id="panel-techs"></div>
+      </div>
+
+      <div class="panel" id="panel-shop-wrap">
+        <div class="panel-head"><h2>💠 Boutique de boosts</h2></div>
+        <div id="panel-shop"></div>
+      </div>
+
+      <div class="panel" id="panel-minigames-wrap">
+        <div class="panel-head"><h2>🎮 Mini-jeux</h2></div>
+        <div id="panel-minigames"></div>
+      </div>
+
+      <div class="panel" id="panel-achievements-wrap">
+        <div class="panel-head"><h2>🏆 Succès</h2></div>
+        <div id="panel-achievements"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modale Check-in -->
+<div id="checkin-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2>🌅 Check-in du jour</h2><button id="checkin-close">✕</button></div>
+    <div class="modal-note">Chaque habitude validée booste ta production jusqu'au prochain check-in (Pulsation de vie). 5/5 = Jour parfait ✨</div>
+    <div id="checkin-body"></div>
+  </div>
+</div>
+
+<!-- Modale Offline -->
+<div id="offline-modal" class="modal">
+  <div class="modal-box small">
+    <div class="modal-head"><h2>🌙 Pendant ton absence</h2></div>
+    <p id="offline-text"></p>
+    <button id="offline-ok" class="btn-primary">Récolter</button>
+  </div>
+</div>
+
+<!-- Overlay DEV -->
+<div id="dev-overlay">
+  <div class="dev-box">
+    <div class="dev-head">
+      <h2>⚙︎ Menu développeur</h2>
+      <button id="dev-close">✕</button>
+    </div>
+    <div class="dev-tabs">
+      <button class="dev-tab active" data-tab="assets">🎨 Console d'assets</button>
+      <button class="dev-tab" data-tab="save">💾 Sauvegarde</button>
+      <button class="dev-tab" data-tab="cheats">🧪 Outils</button>
+    </div>
+
+    <div class="dev-page active" id="dev-assets">
+      <div class="dev-asset-bar">
+        <div class="dev-asset-progress"><div id="dev-asset-progress-bar"></div></div>
+        <span id="dev-asset-progress-txt">0/0</span>
+        <select id="dev-asset-filter">
+          <option value="all">Toutes catégories</option>
+          <option value="ref">Réfs DA</option>
+          <option value="brand">Marque</option>
+          <option value="background">Fonds</option>
+          <option value="creature">Cellules</option>
+          <option value="icon">Icônes</option>
+        </select>
+        <select id="dev-asset-status">
+          <option value="all">Tous statuts</option>
+          <option value="missing">Manquants</option>
+          <option value="done">Fournis</option>
+        </select>
+        <button id="dev-asset-report">Exporter le rapport JSON</button>
+      </div>
+      <div class="dev-asset-help">Importe un PNG/JPG pour chaque asset. Les dimensions exactes attendues sont indiquées ; l'outil vérifie et t'avertit en cas d'écart. Chaque carte contient le prompt de génération (Higgsfield / OpenArt) et ses images de référence.</div>
+      <div id="dev-asset-grid"></div>
+    </div>
+
+    <div class="dev-page" id="dev-save">
+      <div id="dev-save-info" class="dev-save-info"></div>
+      <div class="dev-save-actions">
+        <button id="dev-export" class="btn-primary">⬇︎ Exporter la sauvegarde</button>
+      </div>
+      <label class="dev-lbl">Importer une sauvegarde (colle le code) :</label>
+      <textarea id="dev-import-text" placeholder="Colle ici le code de sauvegarde…"></textarea>
+      <div class="dev-save-actions">
+        <button id="dev-import-btn">⬆︎ Importer</button>
+        <button id="dev-reset" class="btn-danger">🗑 Nouvelle partie</button>
+      </div>
+    </div>
+
+    <div class="dev-page" id="dev-cheats">
+      <h3>⏩ Time warp</h3>
+      <div class="dev-btn-row">
+        <button data-warp="1">+1 h</button>
+        <button data-warp="8">+8 h</button>
+        <button data-warp="24">+24 h</button>
+      </div>
+      <h3>🧪 Cheats (dev only)</h3>
+      <div class="dev-btn-row">
+        <button data-cheat="dna">+1M ADN</button>
+        <button data-cheat="pb">+500 PB</button>
+        <button data-cheat="ap">+25 ⭐</button>
+        <button data-cheat="seed">+5 🌱</button>
+        <button data-cheat="unlockall">Débloquer toutes les technos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ============================================================================
+   EVOLVE — data.js
+   Toutes les données de contenu (générique, paramétré par âge).
+   Rien n'est hardcodé dans le moteur : on ajoute un âge en ajoutant des données.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   HABITUDES RÉELLES → POINTS BONUS (PB)
+   Barème + plafonds du cahier des charges (Socle §4.1 / Bible §3).
+   --------------------------------------------------------------------------- */
+const HABITS = [
+  {
+    id: 'calories',
+    icon: '🍽️',
+    name: 'Objectif calorique',
+    desc: "Rester au-dessus de 80% et sous 100% de ton objectif. Anti-sous-alimentation intégré.",
+    type: 'calorie',
+    pbPerDay: 10,
+  },
+  {
+    id: 'steps',
+    icon: '🚶',
+    name: 'Pas quotidiens',
+    desc: '+1 PB par tranche de 1000 pas.',
+    type: 'rate',
+    per: 1000,
+    pbPer: 1,
+    capPb: 15,
+    unit: 'pas',
+    step: 500,
+    max: 30000,
+  },
+  {
+    id: 'mf',
+    icon: '💼',
+    name: 'Tâches Magic Focus',
+    desc: '+3 PB par tâche terminée (max 10/jour).',
+    type: 'count',
+    pbPer: 3,
+    capItems: 10,
+    unit: 'tâches',
+  },
+  {
+    id: 'alilou',
+    icon: '🏗️',
+    name: 'Chantier ALILOU',
+    desc: '+5 PB par tâche de chantier (max 3/jour). Grosse valeur.',
+    type: 'count',
+    pbPer: 5,
+    capItems: 3,
+    unit: 'tâches',
+  },
+  {
+    id: 'rituals',
+    icon: '🧘',
+    name: 'Rituels bien-être',
+    desc: 'Lire, méditer, marcher, se poser… +5 PB par rituel (max 5/jour).',
+    type: 'count',
+    pbPer: 5,
+    capItems: 5,
+    unit: 'rituels',
+  },
+];
+
+/* ---------------------------------------------------------------------------
+   GÉNÉRATEURS IDLE (organites) — Âge 1
+   Produisent de l'ADN/s. Coût croissant × 1.15 par achat (Bible §10).
+   --------------------------------------------------------------------------- */
+const GENERATORS = [
+  { id: 'replicase',    icon: '🧫', name: 'Réplicase',         desc: "Brin d'ADN auto-réplicant.",         baseCost: 15,     costMult: 1.15, baseRate: 0.2 },
+  { id: 'ribosome',     icon: '⚙️', name: 'Ribosome',          desc: 'Assemble les protéines.',            baseCost: 100,    costMult: 1.15, baseRate: 1,   unlockTech: 'M3' },
+  { id: 'mitochondria', icon: '🔋', name: 'Mitochondrie',      desc: "Centrale d'énergie (×3 rendement).", baseCost: 1100,   costMult: 1.15, baseRate: 8,   unlockTech: 'M4' },
+  { id: 'lysosome',     icon: '🧪', name: 'Lysosome',          desc: 'Recycle la matière en ADN.',         baseCost: 12000,  costMult: 1.15, baseRate: 47 },
+  { id: 'golgi',        icon: '📦', name: 'Appareil de Golgi', desc: 'Trie et distribue les brins.',       baseCost: 130000, costMult: 1.15, baseRate: 260 },
+  { id: 'nucleus',      icon: '🧬', name: 'Noyau',             desc: "Cœur du code génétique.",            baseCost: 1.4e6,  costMult: 1.15, baseRate: 1400 },
+  { id: 'chloroplast',  icon: '🌿', name: 'Chloroplaste',      desc: 'Capte la lumière primordiale.',      baseCost: 2.0e7,  costMult: 1.15, baseRate: 7800 },
+  { id: 'flagellum',    icon: '🦠', name: 'Colonie flagellée', desc: 'Un super-organisme mobile.',         baseCost: 3.3e8,  costMult: 1.15, baseRate: 44000 },
+];
+
+/* ---------------------------------------------------------------------------
+   ARBRE TECHNOLOGIQUE — Âge 1 (4 branches)
+   --------------------------------------------------------------------------- */
+const TECHS = [
+  { id: 'M1', branch: 'metabolisme', name: 'Réplication basique', desc: 'Production idle de base +1 ADN/s.', cost: 25,  effect: { type: 'flatIdle', value: 1 } },
+  { id: 'M2', branch: 'metabolisme', name: 'Membrane sélective',  desc: '+25% production idle.',            cost: 60,  effect: { type: 'globalMult', value: 1.25 }, req: ['M1'] },
+  { id: 'M3', branch: 'metabolisme', name: 'Ribosome primitif',   desc: 'Débloque le générateur Ribosome.', cost: 120, effect: { type: 'unlockGen', value: 'ribosome' }, req: ['M2'] },
+  { id: 'M4', branch: 'metabolisme', name: 'Mitochondrie ancestrale', desc: 'Débloque la Mitochondrie (×3 rendement).', cost: 300, effect: { type: 'unlockGen', value: 'mitochondria' }, req: ['M3'] },
+  { id: 'M5', branch: 'metabolisme', name: 'Enzymes de synthèse', desc: '×2 production globale.',            cost: 750, effect: { type: 'globalMult', value: 2 }, req: ['M4'] },
+  { id: 'M6', branch: 'metabolisme', name: 'Polymérase rapide',   desc: '+10% production / niveau.',         cost: 200, costMult: 1.6, repeatable: true, maxLevel: 50, effect: { type: 'globalMultPerLevel', value: 1.10 }, req: ['M4'] },
+  { id: 'M7', branch: 'metabolisme', name: "Réparation de l'ADN", desc: '+50% production hors-ligne.',       cost: 500, effect: { type: 'offlineMult', value: 1.5 }, req: ['M5'] },
+
+  { id: 'G1', branch: 'proliferation', name: 'Membrane de front', desc: 'Débloque le mini-jeu Guerre primordiale.', cost: 400, effect: { type: 'unlockMinigame', value: 'war' }, req: ['M3'] },
+  { id: 'C1', branch: 'code',          name: 'Premier brin',      desc: 'Débloque le mini-jeu Code génétique.',     cost: 400, effect: { type: 'unlockMinigame', value: 'code' }, req: ['M3'] },
+  { id: 'I1', branch: 'immunite',      name: 'Réponse primitive', desc: 'Débloque le mini-jeu Immunité.',           cost: 400, effect: { type: 'unlockMinigame', value: 'immunity' }, req: ['M3'] },
+];
+
+const TECH_BRANCHES = {
+  metabolisme:   { icon: '🧬', name: 'Métabolisme', color: '#3EE6C4' },
+  proliferation: { icon: '🦠', name: 'Prolifération', color: '#e0603e' },
+  code:          { icon: '🧩', name: 'Code génétique', color: '#c48bff' },
+  immunite:      { icon: '🛡️', name: 'Immunité', color: '#ffd15c' },
+};
+
+/* ---------------------------------------------------------------------------
+   BOOSTS ACHETABLES AVEC LES PB (boutique)
+   --------------------------------------------------------------------------- */
+const BOOSTS = [
+  { id: 'surge',    icon: '⚡', name: 'Sursaut métabolique', desc: '×2 production pendant 4 h.',                costPb: 40, mult: 2,   durationH: 4 },
+  { id: 'bloom',    icon: '🌸', name: 'Floraison',           desc: '×3 production pendant 1 h.',                costPb: 70, mult: 3,   durationH: 1 },
+  { id: 'harvest',  icon: '📥', name: 'Récolte anticipée',   desc: 'Récolte instantanée de 2 h de production.', costPb: 30, instantHours: 2 },
+  { id: 'catalyst', icon: '🧴', name: 'Catalyseur',          desc: '×1.5 production pendant 12 h.',             costPb: 90, mult: 1.5, durationH: 12 },
+];
+
+/* ---------------------------------------------------------------------------
+   SUCCÈS — boostent la production (façon "lait" Cookie Clicker)
+   Chaque succès débloqué ajoute +2% production globale (permanent, méta).
+   --------------------------------------------------------------------------- */
+const ACHIEVEMENTS = [
+  { id: 'first_dna',    icon: '🧬', name: 'Étincelle',            desc: 'Produire ton premier ADN.',            check: s => s.stats.totalDna >= 1 },
+  { id: 'dna_1k',       icon: '💧', name: 'Soupe primordiale',    desc: 'Accumuler 1 000 ADN au total.',        check: s => s.stats.totalDna >= 1000 },
+  { id: 'dna_1m',       icon: '🌊', name: 'Océan de vie',         desc: "Accumuler 1 million d'ADN.",           check: s => s.stats.totalDna >= 1e6 },
+  { id: 'dna_1b',       icon: '🪐', name: 'Abondance',            desc: "Accumuler 1 milliard d'ADN.",          check: s => s.stats.totalDna >= 1e9 },
+  { id: 'gen_5',        icon: '⚙️', name: 'Machinerie',           desc: 'Posséder 5 organites.',                check: s => totalGenerators(s) >= 5 },
+  { id: 'gen_25',       icon: '🏭', name: 'Colonie',              desc: 'Posséder 25 organites.',               check: s => totalGenerators(s) >= 25 },
+  { id: 'gen_100',      icon: '🌆', name: 'Métropole cellulaire', desc: 'Posséder 100 organites.',              check: s => totalGenerators(s) >= 100 },
+  { id: 'tech_3',       icon: '🔬', name: 'Chercheur',            desc: 'Acheter 3 recherches.',                check: s => Object.keys(s.techs).length >= 3 },
+  { id: 'tech_all_meta',icon: '🧠', name: 'Maître du métabolisme',desc: 'Acheter toute la branche Métabolisme.',check: s => ['M1','M2','M3','M4','M5','M7'].every(t => s.techs[t]) },
+  { id: 'pb_100',       icon: '💠', name: 'Discipline',           desc: 'Gagner 100 Points Bonus au total.',    check: s => s.stats.totalPb >= 100 },
+  { id: 'pb_1000',      icon: '💎', name: 'Assidu',               desc: 'Gagner 1 000 Points Bonus au total.',  check: s => s.stats.totalPb >= 1000 },
+  { id: 'checkin_1',    icon: '📅', name: 'Premier rituel',       desc: 'Faire ton premier check-in.',          check: s => s.stats.checkinCount >= 1 },
+  { id: 'checkin_7',    icon: '🗓️', name: 'Une semaine',          desc: 'Faire 7 check-ins.',                   check: s => s.stats.checkinCount >= 7 },
+  { id: 'streak_3',     icon: '🔥', name: 'En feu',               desc: 'Atteindre un élan de 3 jours.',        check: s => s.streak >= 3 },
+  { id: 'streak_7',     icon: '🌟', name: 'Régularité',           desc: 'Atteindre un élan de 7 jours.',        check: s => s.streak >= 7 },
+  { id: 'perfect_1',    icon: '✅', name: 'Jour parfait',         desc: 'Valider 5/5 habitudes en un jour.',    check: s => s.stats.perfectDays >= 1 },
+  { id: 'perfect_5',    icon: '🏆', name: 'Exemplaire',           desc: '5 jours parfaits.',                    check: s => s.stats.perfectDays >= 5 },
+  { id: 'golden_1',     icon: '🌟', name: 'Chasseur',             desc: 'Attraper un Nutriment doré.',          check: s => s.stats.goldenCaught >= 1 },
+  { id: 'golden_10',    icon: '☀️', name: 'Rapide',               desc: 'Attraper 10 Nutriments dorés.',        check: s => s.stats.goldenCaught >= 10 },
+  { id: 'seed_1',       icon: '🌱', name: 'Mutation',             desc: 'Obtenir une Graine de mutation.',      check: s => s.stats.totalSeeds >= 1 },
+];
+
+function totalGenerators(s) {
+  return GENERATORS.reduce((acc, g) => acc + (s.generators[g.id] || 0), 0);
+}
+
+/* ---------------------------------------------------------------------------
+   PARAMÈTRES DE BOOST (la logique qui pousse à logger ses habitudes)
+   --------------------------------------------------------------------------- */
+const TUNING = {
+  agePointThreshold: 100,
+  vitalPerHabit: 0.20,
+  streakPerDay: 0.02,
+  streakCap: 0.50,
+  streakDropOnMiss: 3,
+  perfectDayMult: 3,
+  perfectDayDurationH: 1,
+  offlineCapH: 8,
+  offlineCapCheckedH: 12,
+  goldenBaseIntervalS: 240,
+  goldenCheckedMult: 0.5,
+  goldenRewardMinS: 60,
+  goldenRewardMaxS: 180,
+  palette: { bg: '#020814', primary: '#0B3D45', accent: '#3EE6C4' },
+};
+
+/* ---------------------------------------------------------------------------
+   ÂGE 1 (structure d'AgeDefinition — anticipé pour multi-âges)
+   --------------------------------------------------------------------------- */
+const AGE = {
+  id: 1,
+  name: 'Cellule',
+  subtitle: 'De la matière inerte à la première étincelle de vie',
+  resource: 'ADN',
+  resourceIcon: '🧬',
+  milieu: 'Soupe primordiale',
+  stages: 5,
+};
+
+if (typeof module !== 'undefined') {
+  module.exports = { HABITS, GENERATORS, TECHS, TECH_BRANCHES, BOOSTS, ACHIEVEMENTS, TUNING, AGE, totalGenerators };
+}
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — assets.js
+   Manifeste d'assets de l'Âge 1 + store IndexedDB pour les PNG importés.
+   Chaque entrée : id, catégorie, ce qu'elle représente, dimensions PNG exactes,
+   format, prompt de génération (Higgsfield/OpenArt), 3 refs de cohérence.
+   ============================================================================ */
+
+const ASSET_MANIFEST = [
+  // ---------- IDENTITÉ / DA ----------
+  { id: 'logo',            cat: 'brand', label: 'Logo EVOLVE', represents: "Logotype du jeu, bioluminescent, sur fond transparent.",
+    w: 1024, h: 512, format: 'PNG-32', slot: 'logo',
+    prompt: "EVOLVE game logo, glowing bioluminescent letters in teal (#3EE6C4) and deep abyssal blue, organic cellular texture inside the letters, subtle double-helix motif, transparent background, high contrast, cinematic sci-fi biology aesthetic, No Man's Sky meets Spore",
+    refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+
+  { id: 'diorama_day',     cat: 'background', label: 'Diorama — soupe primordiale (jour)', represents: "Fond plein écran de la vue principale, océan micro lumineux.",
+    w: 2048, h: 2048, format: 'PNG-24 / JPG', slot: 'dioramaDay',
+    prompt: "Primordial soup microscopic ocean, bioluminescent teal-green particles suspended in translucent water, hydrothermal vents glowing faintly in the deep, soft volumetric light rays from above, abyssal dark blue (#020814) to petrol teal (#0B3D45) gradient, dreamy contemplative mood, ultra detailed, cosmic-biology art",
+    refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+
+  { id: 'diorama_night',   cat: 'background', label: 'Diorama — soupe primordiale (nuit)', represents: "Variante nocturne, plus sombre, bioluminescence renforcée.",
+    w: 2048, h: 2048, format: 'PNG-24 / JPG', slot: 'dioramaNight',
+    prompt: "Primordial soup at night, near-black abyssal water (#020814), intense bioluminescent teal specks and glowing filaments, faint hydrothermal ember-glow, deep silence, volumetric god-rays barely visible, cosmic-biology art, same style and palette as the day version",
+    refs: ['diorama_day','ref_da_2','ref_da_3'] },
+
+  // ---------- CELLULE-AVATAR (5 stades) ----------
+  { id: 'cell_stage1', cat: 'creature', label: 'Cellule — stade 1', represents: "Micro-organisme minimal, une seule cellule translucide.",
+    w: 512, h: 512, format: 'PNG-32', slot: 'cellStage1',
+    prompt: "Single translucent primordial cell, minimal, glowing teal nucleus, soft membrane with subtle refraction, floating, centered, transparent background, bioluminescent, Spore-like stylized 3D, palette #3EE6C4 / #0B3D45",
+    refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'cell_stage2', cat: 'creature', label: 'Cellule — stade 2', represents: "Cellule avec premiers organites visibles.",
+    w: 512, h: 512, format: 'PNG-32', slot: 'cellStage2',
+    prompt: "Primordial cell with first visible organelles (ribosomes, small mitochondria), translucent membrane, brighter teal glow, subtle flagellum forming, transparent background, same stylized 3D style as stage 1",
+    refs: ['cell_stage1','ref_da_2','ref_da_3'] },
+  { id: 'cell_stage3', cat: 'creature', label: 'Cellule — stade 3', represents: "Cellule complexe, noyau net, flagelle.",
+    w: 512, h: 512, format: 'PNG-32', slot: 'cellStage3',
+    prompt: "Complex eukaryotic-like cell, clear glowing nucleus, multiple mitochondria, active flagellum, rich bioluminescence, translucent, transparent background, same style, palette #3EE6C4 / #0B3D45",
+    refs: ['cell_stage2','ref_da_2','ref_da_3'] },
+  { id: 'cell_stage4', cat: 'creature', label: 'Cellule — stade 4', represents: "Amas de cellules, début de colonie.",
+    w: 512, h: 512, format: 'PNG-32', slot: 'cellStage4',
+    prompt: "Small colony of joined cells, early multicellularity, shared glowing network between cells, translucent cluster, transparent background, same stylized bioluminescent style",
+    refs: ['cell_stage3','ref_da_2','ref_da_3'] },
+  { id: 'cell_stage5', cat: 'creature', label: 'Cellule — stade 5', represents: "Super-organisme prêt à passer à l'Âge 2.",
+    w: 512, h: 512, format: 'PNG-32', slot: 'cellStage5',
+    prompt: "Radiant multicellular super-organism, dense luminous colony pulsing with life, on the verge of transformation, intense teal-white glow, transparent background, epic, same style",
+    refs: ['cell_stage4','ref_da_2','ref_da_3'] },
+
+  // ---------- ORGANITES / GÉNÉRATEURS (icônes) ----------
+  ...[
+    ['replicase','Réplicase','a self-replicating DNA strand curling, glowing teal'],
+    ['ribosome','Ribosome','a stylized ribosome organelle assembling a protein chain'],
+    ['mitochondria','Mitochondrie','a glowing mitochondria with inner cristae, energy sparks'],
+    ['lysosome','Lysosome','a translucent lysosome vesicle digesting matter into glowing dna'],
+    ['golgi','Appareil de Golgi','a folded golgi apparatus sorting glowing vesicles'],
+    ['nucleus','Noyau','a cell nucleus with a bright helix core'],
+    ['chloroplast','Chloroplaste','a chloroplast capturing light, green-teal bioluminescence'],
+    ['flagellum','Colonie flagellée','a motile flagellated cell colony'],
+  ].map(([id,label,desc]) => ({
+    id: 'gen_' + id, cat: 'icon', label: 'Icône — ' + label, represents: 'Icône du générateur ' + label + '.',
+    w: 128, h: 128, format: 'PNG-32', slot: 'gen_' + id,
+    prompt: `Game icon, ${desc}, centered, transparent background, clean rim light, bioluminescent teal (#3EE6C4) on abyssal dark, semi-flat stylized icon, crisp at 128px`,
+    refs: ['ref_da_1','ref_da_2','ref_da_3'],
+  })),
+
+  // ---------- ICÔNES RESSOURCES ----------
+  { id: 'icon_dna', cat: 'icon', label: 'Icône — ADN', represents: 'Icône de la ressource ADN.', w: 128, h: 128, format: 'PNG-32', slot: 'icon_dna',
+    prompt: "Game resource icon, glowing double helix DNA strand, teal bioluminescent, transparent background, crisp, centered", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'icon_pb', cat: 'icon', label: 'Icône — Points Bonus', represents: 'Icône de la monnaie Points Bonus (💠).', w: 128, h: 128, format: 'PNG-32', slot: 'icon_pb',
+    prompt: "Game currency icon, a glowing teal crystalline diamond of pure energy, transparent background, crisp, centered", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'icon_agepoint', cat: 'icon', label: "Icône — Points d'Âge", represents: "Icône de la monnaie suprême Points d'Âge (⭐).", w: 128, h: 128, format: 'PNG-32', slot: 'icon_agepoint',
+    prompt: "Game currency icon, a radiant evolutionary star-seed, white-gold core with teal aura, transparent background, crisp, centered", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'icon_seed', cat: 'icon', label: 'Icône — Graine de mutation', represents: 'Icône de la monnaie rare Graine (🌱).', w: 128, h: 128, format: 'PNG-32', slot: 'icon_seed',
+    prompt: "Game icon, a glowing mutating seed of light, teal-green with sparks, transparent background, crisp, centered", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'icon_golden', cat: 'icon', label: 'Icône — Nutriment doré', represents: 'Le bonus doré cliquable (récompense variable).', w: 256, h: 256, format: 'PNG-32', slot: 'icon_golden',
+    prompt: "Glowing golden-amber nutrient orb pulsing with warm light, floating, transparent background, contrast against teal world, crisp, centered, tempting collectible", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+];
+
+/* ---------- Refs de cohérence (les 3 images maîtresses de la DA) ---------- */
+const ASSET_REFS = [
+  { id: 'ref_da_1', label: 'Réf DA 1 — palette & matière', slot: 'ref_da_1',
+    prompt: "Mood/reference board for a bioluminescent primordial-soup video game, palette swatches #020814 #0B3D45 #3EE6C4, translucent cell membranes, volumetric underwater light, No Man's Sky x Spore vibe" },
+  { id: 'ref_da_2', label: 'Réf DA 2 — silhouettes de cellules', slot: 'ref_da_2',
+    prompt: "Reference sheet of stylized translucent cells and organelles, clean readable silhouettes, teal glow, dark abyssal background, consistent art direction" },
+  { id: 'ref_da_3', label: 'Réf DA 3 — ambiance cosmique-biologie', slot: 'ref_da_3',
+    prompt: "Reference of a contemplative cosmic-biology atmosphere, micro-ocean that feels like a galaxy, soft sublime dark but warm mood, teal bioluminescence" },
+];
+
+/* ============================================================================
+   STORE INDEXEDDB — stocke les PNG importés (dataURL) par slot
+   ============================================================================ */
+const AssetStore = (() => {
+  const DB = 'evolve_assets', STORE = 'imgs';
+  let dbP = null;
+  function open() {
+    if (dbP) return dbP;
+    dbP = new Promise((res, rej) => {
+      const r = indexedDB.open(DB, 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore(STORE); };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return dbP;
+  }
+  async function put(slot, dataUrl) {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(dataUrl, slot);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function get(slot) {
+    const db = await open();
+    return new Promise((res) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(slot);
+      req.onsuccess = () => res(req.result || null);
+      req.onerror = () => res(null);
+    });
+  }
+  async function del(slot) {
+    const db = await open();
+    return new Promise((res) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(slot);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => res(false);
+    });
+  }
+  async function all() {
+    const db = await open();
+    return new Promise((res) => {
+      const out = {};
+      const tx = db.transaction(STORE, 'readonly');
+      const store = tx.objectStore(STORE);
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const c = req.result;
+        if (c) { out[c.key] = c.value; c.continue(); }
+        else res(out);
+      };
+      req.onerror = () => res(out);
+    });
+  }
+  return { put, get, del, all };
+})();
+
+
+/* Assets livrés par défaut. Priorité : import du joueur (IndexedDB) > fichier local
+   /assets/*.png > URL de preview (CDN Higgsfield, générée pour la V0).
+   Pour figer ces visuels dans le repo, dépose les mêmes fichiers dans /assets/
+   (voir BRIEF_ASSETS.md) ou remplace-les via le menu dev. */
+const CDN = 'https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/';
+const DEFAULT_ASSET_FILES = {
+  logo:       ['assets/logo.png',        CDN + 'hf_20260716_082344_cf4ec8c5-30d9-4b32-ac42-bab8eb16ef6d.png'],
+  dioramaDay: ['assets/diorama_day.jpg', CDN + 'hf_20260716_082327_85995850-58c9-4240-94e6-fef76a8da804.png'],
+  cellStage1: ['assets/cell_stage1.png', CDN + 'hf_20260716_082615_fc759ecc-8c5c-4303-94d9-e1098e4c6c81.png'],
+  cellStage2: ['assets/cell_stage2.png', CDN + 'hf_20260716_082617_4c5651c4-1411-4f94-9e43-da5de47d2669.png'],
+  cellStage3: ['assets/cell_stage3.png', CDN + 'hf_20260716_082617_4c5651c4-1411-4f94-9e43-da5de47d2669.png'],
+  cellStage4: ['assets/cell_stage4.png', CDN + 'hf_20260716_082618_c34e18aa-c9a7-45f6-9a12-75a440f7937c.png'],
+  cellStage5: ['assets/cell_stage5.png', CDN + 'hf_20260716_082618_c34e18aa-c9a7-45f6-9a12-75a440f7937c.png'],
+  ref_da_1:   ['assets/ref_da_1.jpg',    CDN + 'hf_20260716_082336_4747d91e-994b-4b87-b769-671e96c6a512.png'],
+  ref_da_2:   ['assets/ref_da_2.jpg',    CDN + 'hf_20260716_082339_af0144b7-38bb-411d-877b-fb154369c275.png'],
+  ref_da_3:   ['assets/ref_da_3.jpg',    CDN + 'hf_20260716_082342_6fc0c5c2-6319-4a72-a386-06646dca98b1.png'],
+};
+
+// Cache mémoire des slots -> URL (rempli au boot), pour un rendu synchrone
+const ASSET_CACHE = {};
+
+function loadableUrl(url) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => res(true);
+    img.onerror = () => res(false);
+    img.src = url;
+  });
+}
+
+async function firstLoadable(candidates) {
+  const list = Array.isArray(candidates) ? candidates : [candidates];
+  for (const u of list) { if (await loadableUrl(u)) return u; }
+  return null;
+}
+
+async function preloadAssets() {
+  await Promise.all(Object.entries(DEFAULT_ASSET_FILES).map(async ([slot, cand]) => {
+    const url = await firstLoadable(cand);
+    if (url) ASSET_CACHE[slot] = url;
+  }));
+  try {
+    const map = await AssetStore.all();
+    Object.assign(ASSET_CACHE, map);
+  } catch (e) { /* IndexedDB indisponible (ex. file://) — on garde les défauts */ }
+}
+function assetUrl(slot) { return ASSET_CACHE[slot] || null; }
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — game.js
+   État, moteur économique, sauvegarde, boucle de calcul.
+   Séparation stricte PersistentState (jamais reset) / RunState (reset à l'âge).
+   ============================================================================ */
+
+const SAVE_KEY = 'evolve_save_v1';
+
+/* ---------- État par défaut ---------- */
+function defaultState() {
+  return {
+    version: 1,
+    // ---- Ressources de run ----
+    dna: 0,
+    pb: 0,                    // Points Bonus (💠)
+    agePoints: 0,             // Points d'Âge (⭐) — méta / persistant
+    seeds: 0,                 // Graines de mutation (🌱) — méta rare
+
+    ageId: 1,
+
+    generators: {},           // id -> count
+    techs: {},                // id -> level (1 pour non répétable)
+    unlockedGens: {},         // id -> true (via techno)
+    unlockedMinigames: {},    // war/code/immunity -> true
+
+    boosts: [],               // {id, mult, endsAt}
+    activeBoostsInstant: 0,
+
+    // ---- Habitudes / check-in ----
+    todayHabits: emptyHabits(),   // saisie du jour (non validée)
+    validatedToday: false,
+    todayCount: 0,                // nb d'habitudes validées aujourd'hui (pour Pulsation)
+    lastCheckinDate: null,        // 'YYYY-MM-DD'
+    streak: 0,
+    calorieGoal: 2200,
+
+    // ---- Jour parfait boost ----
+    perfectBoostEndsAt: 0,
+
+    // ---- Nutriment doré ----
+    nextGoldenAt: 0,
+
+    // ---- Succès ----
+    achievements: {},         // id -> true
+
+    // ---- Stats (pour succès & affichage) ----
+    stats: {
+      totalDna: 0, totalPb: 0, totalSeeds: 0,
+      checkinCount: 0, perfectDays: 0, goldenCaught: 0,
+    },
+
+    lastTick: Date.now(),
+    lastSave: Date.now(),
+    createdAt: Date.now(),
+    // options
+    settings: { sound: true, reducedMotion: false },
+    // devtools : assets importés stockés en IndexedDB, ici juste les métadonnées
+  };
+}
+
+function emptyHabits() {
+  return { calories: 0, steps: 0, mf: 0, alilou: 0, rituals: 0, caloriesDone: false };
+}
+
+let state = defaultState();
+
+/* Accesseurs (utiles pour les tests hors-DOM ; inoffensifs dans le navigateur) */
+function getState() { return state; }
+function setState(s) { state = s; }
+
+/* ---------- Sauvegarde ---------- */
+function saveGame() {
+  try {
+    state.lastSave = Date.now();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    return true;
+  } catch (e) { console.error('save failed', e); return false; }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const loaded = JSON.parse(raw);
+    state = Object.assign(defaultState(), loaded);
+    state.stats = Object.assign(defaultState().stats, loaded.stats || {});
+    if (!state.todayHabits) state.todayHabits = emptyHabits();
+    return true;
+  } catch (e) { console.error('load failed', e); return false; }
+}
+
+function exportSave() {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+}
+function importSave(str) {
+  try {
+    const obj = JSON.parse(decodeURIComponent(escape(atob(str.trim()))));
+    state = Object.assign(defaultState(), obj);
+    state.stats = Object.assign(defaultState().stats, obj.stats || {});
+    saveGame();
+    return true;
+  } catch (e) { console.error('import failed', e); return false; }
+}
+function hardReset() {
+  localStorage.removeItem(SAVE_KEY);
+  state = defaultState();
+  saveGame();
+}
+
+/* ---------- Utilitaires date ---------- */
+function todayStr(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function daysBetween(a, b) {
+  const da = new Date(a + 'T00:00:00'), db = new Date(b + 'T00:00:00');
+  return Math.round((db - da) / 86400000);
+}
+
+/* ============================================================================
+   CALCUL DE LA PRODUCTION
+   ============================================================================ */
+
+// Somme des effets multiplicatifs des technos + succès + boosts + streak + pulsation
+function computeMultipliers() {
+  let globalMult = 1;
+  let flatIdle = 0;
+  let offlineMult = 1;
+
+  // Technos
+  for (const t of TECHS) {
+    const lvl = state.techs[t.id];
+    if (!lvl) continue;
+    const e = t.effect;
+    if (e.type === 'flatIdle') flatIdle += e.value;
+    else if (e.type === 'globalMult') globalMult *= e.value;
+    else if (e.type === 'globalMultPerLevel') globalMult *= Math.pow(e.value, lvl);
+    else if (e.type === 'offlineMult') offlineMult *= e.value;
+  }
+
+  // Succès : +2% chacun
+  const achCount = Object.keys(state.achievements).length;
+  globalMult *= (1 + 0.02 * achCount);
+
+  // Élan (streak)
+  const streakBonus = Math.min(TUNING.streakCap, state.streak * TUNING.streakPerDay);
+  globalMult *= (1 + streakBonus);
+
+  // Pulsation de vie : +20% par habitude validée aujourd'hui
+  const vital = 1 + state.todayCount * TUNING.vitalPerHabit;
+  globalMult *= vital;
+
+  // Boosts temporaires actifs
+  const now = Date.now();
+  for (const b of state.boosts) {
+    if (b.endsAt > now) globalMult *= b.mult;
+  }
+  // Jour parfait
+  if (state.perfectBoostEndsAt > now) globalMult *= TUNING.perfectDayMult;
+
+  return { globalMult, flatIdle, offlineMult, streakBonus, vital, achCount };
+}
+
+// Production ADN/s courante (hors offline)
+function dnaPerSecond() {
+  const m = computeMultipliers();
+  let base = m.flatIdle;
+  for (const g of GENERATORS) {
+    const count = state.generators[g.id] || 0;
+    base += count * g.baseRate;
+  }
+  return base * m.globalMult;
+}
+
+/* ---------- Coûts ---------- */
+function genCost(g, index = null) {
+  const owned = state.generators[g.id] || 0;
+  const n = index === null ? owned : index;
+  return Math.ceil(g.baseCost * Math.pow(g.costMult, n));
+}
+function genBulkCost(g, qty) {
+  let total = 0;
+  const owned = state.generators[g.id] || 0;
+  for (let i = 0; i < qty; i++) total += Math.ceil(g.baseCost * Math.pow(g.costMult, owned + i));
+  return total;
+}
+function maxAffordable(g) {
+  let qty = 0, total = 0;
+  const owned = state.generators[g.id] || 0;
+  while (qty < 100000) {
+    const c = Math.ceil(g.baseCost * Math.pow(g.costMult, owned + qty));
+    if (total + c > state.dna) break;
+    total += c; qty++;
+  }
+  return { qty, total };
+}
+function techCost(t) {
+  if (t.repeatable) {
+    const lvl = state.techs[t.id] || 0;
+    return Math.ceil(t.cost * Math.pow(t.costMult || 1.5, lvl));
+  }
+  return t.cost;
+}
+
+/* ---------- Achats ---------- */
+function buyGenerator(id, qty = 1) {
+  const g = GENERATORS.find(x => x.id === id);
+  if (!g) return false;
+  if (g.unlockTech && !state.techs[g.unlockTech] && !state.unlockedGens[id]) return false;
+  let bought = 0;
+  for (let i = 0; i < qty; i++) {
+    const c = genCost(g);
+    if (state.dna < c) break;
+    state.dna -= c;
+    state.generators[id] = (state.generators[id] || 0) + 1;
+    bought++;
+  }
+  return bought > 0;
+}
+function buyMaxGenerator(id) {
+  const g = GENERATORS.find(x => x.id === id);
+  if (!g) return false;
+  const { qty } = maxAffordable(g);
+  if (qty <= 0) return false;
+  return buyGenerator(id, qty);
+}
+
+function canBuyTech(t) {
+  if (!t.repeatable && state.techs[t.id]) return false;
+  if (t.repeatable && (state.techs[t.id] || 0) >= (t.maxLevel || 999)) return false;
+  if (t.req && !t.req.every(r => state.techs[r])) return false;
+  return state.dna >= techCost(t);
+}
+function buyTech(id) {
+  const t = TECHS.find(x => x.id === id);
+  if (!t || !canBuyTech(t)) return false;
+  state.dna -= techCost(t);
+  state.techs[id] = (state.techs[id] || 0) + 1;
+  applyTechEffect(t);
+  return true;
+}
+function applyTechEffect(t) {
+  const e = t.effect;
+  if (e.type === 'unlockGen') state.unlockedGens[e.value] = true;
+  else if (e.type === 'unlockMinigame') state.unlockedMinigames[e.value] = true;
+  // les multiplicateurs sont recalculés à la volée
+}
+
+/* ---------- Boosts PB ---------- */
+function buyBoost(id) {
+  const b = BOOSTS.find(x => x.id === id);
+  if (!b || state.pb < b.costPb) return false;
+  state.pb -= b.costPb;
+  if (b.instantHours) {
+    const gain = dnaPerSecond() * b.instantHours * 3600;
+    addDna(gain);
+  } else {
+    state.boosts.push({ id: b.id, mult: b.mult, endsAt: Date.now() + b.durationH * 3600 * 1000 });
+  }
+  return true;
+}
+
+/* ---------- Ressources ---------- */
+function addDna(amount) {
+  state.dna += amount;
+  state.stats.totalDna += amount;
+}
+function addPb(amount) {
+  state.pb += amount;
+  state.stats.totalPb += amount;
+}
+function addSeeds(n) {
+  state.seeds += n;
+  state.stats.totalSeeds += n;
+}
+
+/* ============================================================================
+   CHECK-IN HABITUDES → PB
+   ============================================================================ */
+function computeHabitPb(h) {
+  const v = state.todayHabits;
+  switch (h.type) {
+    case 'calorie': {
+      // gain seulement si apport ∈ [0.8*objectif, objectif]
+      const kcal = v.calories;
+      if (v.caloriesDone && kcal >= 0.8 * state.calorieGoal && kcal <= state.calorieGoal) return h.pbPerDay;
+      return 0;
+    }
+    case 'rate': {
+      const raw = Math.floor(v[h.id] / h.per) * h.pbPer;
+      return Math.min(raw, h.capPb);
+    }
+    case 'count': {
+      const raw = Math.min(v[h.id], h.capItems) * h.pbPer;
+      return raw;
+    }
+  }
+  return 0;
+}
+function habitValidated(h) {
+  const v = state.todayHabits;
+  if (h.type === 'calorie') return v.caloriesDone && v.calories >= 0.8 * state.calorieGoal && v.calories <= state.calorieGoal;
+  return (v[h.id] || 0) > 0;
+}
+function previewCheckinPb() {
+  return HABITS.reduce((acc, h) => acc + computeHabitPb(h), 0);
+}
+function previewCheckinCount() {
+  return HABITS.reduce((acc, h) => acc + (habitValidated(h) ? 1 : 0), 0);
+}
+
+// Retourne un objet résumé pour l'animation
+function doCheckin() {
+  const today = todayStr();
+  if (state.lastCheckinDate === today) return { already: true };
+
+  const pbGain = previewCheckinPb();
+  const count = previewCheckinCount();
+
+  // streak
+  if (state.lastCheckinDate) {
+    const gap = daysBetween(state.lastCheckinDate, today);
+    if (gap === 1) state.streak += 1;
+    else if (gap > 1) state.streak = Math.max(0, state.streak - TUNING.streakDropOnMiss * (gap - 1));
+    // gap 0 impossible (déjà géré)
+  } else {
+    state.streak = 1;
+  }
+
+  addPb(pbGain);
+  state.todayCount = count;
+  state.validatedToday = true;
+  state.lastCheckinDate = today;
+  state.stats.checkinCount += 1;
+
+  let seedGain = 0;
+  let perfect = false;
+  if (count >= HABITS.length) {
+    perfect = true;
+    state.stats.perfectDays += 1;
+    state.perfectBoostEndsAt = Date.now() + TUNING.perfectDayDurationH * 3600 * 1000;
+    seedGain = 1;
+    addSeeds(1);
+  }
+
+  return { already: false, pbGain, count, total: HABITS.length, perfect, seedGain, streak: state.streak };
+}
+
+/* ============================================================================
+   NUTRIMENT DORÉ (récompense variable, façon golden cookie)
+   ============================================================================ */
+function goldenIntervalMs() {
+  const checked = state.lastCheckinDate === todayStr();
+  const base = TUNING.goldenBaseIntervalS * (checked ? TUNING.goldenCheckedMult : 1);
+  // ±40% aléatoire
+  const jitter = 0.6 + Math.random() * 0.8;
+  return base * jitter * 1000;
+}
+function scheduleGolden() {
+  state.nextGoldenAt = Date.now() + goldenIntervalMs();
+}
+function catchGolden() {
+  const secs = TUNING.goldenRewardMinS + Math.random() * (TUNING.goldenRewardMaxS - TUNING.goldenRewardMinS);
+  const gain = Math.max(20, dnaPerSecond() * secs);
+  addDna(gain);
+  state.stats.goldenCaught += 1;
+  scheduleGolden();
+  return { gain, secs };
+}
+
+/* ============================================================================
+   TICK PRINCIPAL + OFFLINE
+   ============================================================================ */
+function tick(dtSeconds) {
+  const rate = dnaPerSecond();
+  addDna(rate * dtSeconds);
+  // purge boosts expirés
+  const now = Date.now();
+  state.boosts = state.boosts.filter(b => b.endsAt > now);
+  checkAchievements();
+}
+
+function applyOffline() {
+  const now = Date.now();
+  const elapsed = (now - (state.lastTick || now)) / 1000;
+  if (elapsed < 30) { state.lastTick = now; return null; }
+
+  const m = computeMultipliers();
+  const checkedYesterday = state.lastCheckinDate &&
+    daysBetween(state.lastCheckinDate, todayStr()) <= 1;
+  const capH = checkedYesterday ? TUNING.offlineCapCheckedH : TUNING.offlineCapH;
+  const capped = Math.min(elapsed, capH * 3600);
+
+  const rate = dnaPerSecond() * m.offlineMult;
+  const gain = rate * capped;
+  addDna(gain);
+  state.lastTick = now;
+  return { gain, seconds: capped, cappedAt: capH, full: elapsed };
+}
+
+/* ---------- Succès ---------- */
+function checkAchievements() {
+  let unlockedNow = [];
+  for (const a of ACHIEVEMENTS) {
+    if (!state.achievements[a.id] && a.check(state)) {
+      state.achievements[a.id] = true;
+      unlockedNow.push(a);
+    }
+  }
+  return unlockedNow;
+}
+
+/* ---------- Progression / diorama ---------- */
+function ageProgress() {
+  return Math.min(1, state.agePoints / TUNING.agePointThreshold);
+}
+// Stade visuel du diorama (1..stages) basé sur le total d'ADN (log)
+function dioramaStage() {
+  const t = state.stats.totalDna;
+  if (t < 500) return 1;
+  if (t < 50000) return 2;
+  if (t < 5e6) return 3;
+  if (t < 5e8) return 4;
+  return 5;
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    defaultState, getState, setState,
+    saveGame, loadGame, exportSave, importSave, hardReset,
+    computeMultipliers, dnaPerSecond, genCost, genBulkCost, maxAffordable, techCost,
+    buyGenerator, buyMaxGenerator, canBuyTech, buyTech, buyBoost,
+    addDna, addPb, addSeeds, computeHabitPb, habitValidated, previewCheckinPb, previewCheckinCount,
+    doCheckin, scheduleGolden, catchGolden, tick, applyOffline, checkAchievements,
+    ageProgress, dioramaStage, todayStr,
+  };
+}
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — ui.js
+   Rendu du HUD, du diorama, des panneaux (organites, techno, boutique,
+   check-in, succès) et des feedbacks (toasts, particules).
+   ============================================================================ */
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* ---------- Formatage des grands nombres ---------- */
+const NUM_NAMES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmt(n) {
+  if (n === Infinity) return '∞';
+  if (n < 1000) return (n % 1 === 0 ? n.toString() : n.toFixed(1));
+  let tier = Math.floor(Math.log10(Math.abs(n)) / 3);
+  if (tier < NUM_NAMES.length) {
+    const scaled = n / Math.pow(10, tier * 3);
+    return scaled.toFixed(2).replace(/\.?0+$/, '') + NUM_NAMES[tier];
+  }
+  return n.toExponential(2);
+}
+function fmtInt(n) { return Math.floor(n).toLocaleString('fr-FR'); }
+function fmtTime(s) {
+  s = Math.floor(s);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
+
+/* ---------- Icône d'un slot (image importée sinon emoji) ---------- */
+function slotIcon(slot, emoji, size = 24) {
+  const url = assetUrl(slot);
+  if (url) return `<img class="slot-img" src="${url}" style="width:${size}px;height:${size}px" alt="">`;
+  return `<span class="slot-emoji" style="font-size:${size * 0.9}px">${emoji}</span>`;
+}
+
+/* ============================================================================
+   HUD (barre de ressources)
+   ============================================================================ */
+function renderHud() {
+  const rate = dnaPerSecond();
+  $('#hud-dna').textContent = fmt(state.dna);
+  $('#hud-dna-rate').textContent = fmt(rate) + '/s';
+  $('#hud-pb').textContent = fmt(state.pb);
+  $('#hud-ap').textContent = fmt(state.agePoints);
+  $('#hud-seed').textContent = fmt(state.seeds);
+
+  // multiplicateurs actifs
+  const m = computeMultipliers();
+  const chips = [];
+  if (state.todayCount > 0) chips.push(`<span class="chip vital">Pulsation ×${(1 + state.todayCount * TUNING.vitalPerHabit).toFixed(1)}</span>`);
+  if (state.streak > 0) chips.push(`<span class="chip streak">🔥 ${state.streak}j (+${Math.round(Math.min(TUNING.streakCap, state.streak*TUNING.streakPerDay)*100)}%)</span>`);
+  const now = Date.now();
+  if (state.perfectBoostEndsAt > now) chips.push(`<span class="chip perfect">✨ Jour parfait ×${TUNING.perfectDayMult}</span>`);
+  for (const b of state.boosts) {
+    if (b.endsAt > now) {
+      const bd = BOOSTS.find(x => x.id === b.id);
+      chips.push(`<span class="chip boost">${bd ? bd.icon : '⚡'} ×${b.mult} · ${fmtTime((b.endsAt-now)/1000)}</span>`);
+    }
+  }
+  $('#hud-chips').innerHTML = chips.join('');
+}
+
+/* ============================================================================
+   DIORAMA (canvas vivant)
+   ============================================================================ */
+const Diorama = (() => {
+  let canvas, ctx, particles = [], w = 0, h = 0, t = 0;
+  function init() {
+    canvas = $('#diorama-canvas');
+    ctx = canvas.getContext('2d');
+    resize();
+    window.addEventListener('resize', resize);
+    seed();
+  }
+  function resize() {
+    const r = canvas.parentElement.getBoundingClientRect();
+    w = canvas.width = r.width * devicePixelRatio;
+    h = canvas.height = r.height * devicePixelRatio;
+    canvas.style.width = r.width + 'px';
+    canvas.style.height = r.height + 'px';
+  }
+  function seed() {
+    particles = [];
+    const n = 60;
+    for (let i = 0; i < n; i++) particles.push(mkParticle());
+  }
+  function mkParticle() {
+    return {
+      x: Math.random() * w, y: Math.random() * h,
+      r: (1 + Math.random() * 3) * devicePixelRatio,
+      vx: (Math.random() - 0.5) * 0.2 * devicePixelRatio,
+      vy: (-0.1 - Math.random() * 0.3) * devicePixelRatio,
+      a: 0.2 + Math.random() * 0.6,
+      hue: 160 + Math.random() * 30,
+    };
+  }
+  let pulse = 0;
+  function pulseNow() { pulse = 1; }
+  function draw() {
+    if (!ctx) return;
+    t += 0.016;
+    // fond
+    const bgUrl = assetUrl('dioramaDay');
+    ctx.clearRect(0, 0, w, h);
+    if (bgUrl && Diorama._bgImg && Diorama._bgImg.complete) {
+      // cover
+      const img = Diorama._bgImg;
+      const scale = Math.max(w / img.width, h / img.height);
+      const iw = img.width * scale, ih = img.height * scale;
+      ctx.globalAlpha = 1;
+      ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2, iw, ih);
+    } else {
+      const g = ctx.createRadialGradient(w/2, h*0.55, 10, w/2, h*0.55, Math.max(w,h)*0.7);
+      g.addColorStop(0, '#0B3D45');
+      g.addColorStop(1, '#020814');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    }
+    // rayons volumétriques
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 3; i++) {
+      const x = w * (0.25 + i * 0.25) + Math.sin(t * 0.2 + i) * 20 * devicePixelRatio;
+      const grad = ctx.createLinearGradient(x, 0, x, h);
+      grad.addColorStop(0, 'rgba(62,230,196,0.06)');
+      grad.addColorStop(1, 'rgba(62,230,196,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(x - 40*devicePixelRatio, 0);
+      ctx.lineTo(x + 40*devicePixelRatio, 0);
+      ctx.lineTo(x + 120*devicePixelRatio, h);
+      ctx.lineTo(x - 120*devicePixelRatio, h);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // particules
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+      if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
+      const flick = 0.7 + 0.3 * Math.sin(t * 2 + p.x);
+      ctx.beginPath();
+      ctx.fillStyle = `hsla(${p.hue},80%,65%,${p.a * flick})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // avatar cellule au centre
+    drawCell();
+
+    // pulsation de récolte
+    if (pulse > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const rad = (1 - pulse) * Math.max(w, h) * 0.6;
+      ctx.strokeStyle = `rgba(62,230,196,${pulse * 0.5})`;
+      ctx.lineWidth = 3 * devicePixelRatio;
+      ctx.beginPath();
+      ctx.arc(w/2, h*0.55, rad, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.restore();
+      pulse -= 0.02;
+      if (pulse < 0) pulse = 0;
+    }
+    requestAnimationFrame(draw);
+  }
+  function drawCell() {
+    const stage = dioramaStage();
+    const cx = w/2, cy = h*0.55;
+    const slot = 'cellStage' + stage;
+    const url = assetUrl(slot);
+    const base = Math.min(w, h) * (0.12 + stage * 0.03);
+    const breathe = 1 + Math.sin(t * 1.2) * 0.04;
+    const R = base * breathe;
+    if (url) {
+      if (!drawCell._imgs) drawCell._imgs = {};
+      if (!drawCell._imgs[slot]) { const im = new Image(); im.src = url; drawCell._imgs[slot] = im; }
+      const im = drawCell._imgs[slot];
+      if (im.complete) { ctx.globalAlpha = 1; ctx.drawImage(im, cx - R, cy - R, R*2, R*2); return; }
+    }
+    // fallback vectoriel : cellule bioluminescente
+    ctx.save();
+    ctx.translate(cx, cy);
+    // halo
+    const glow = ctx.createRadialGradient(0,0,R*0.2,0,0,R*1.6);
+    glow.addColorStop(0,'rgba(62,230,196,0.35)');
+    glow.addColorStop(1,'rgba(62,230,196,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0,0,R*1.6,0,Math.PI*2); ctx.fill();
+    // membrane
+    ctx.beginPath();
+    for (let a = 0; a <= Math.PI*2+0.01; a += 0.15) {
+      const wob = 1 + Math.sin(a*6 + t*1.5)*0.03;
+      const x = Math.cos(a)*R*wob, y = Math.sin(a)*R*wob;
+      a === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    const mg = ctx.createRadialGradient(-R*0.3,-R*0.3,R*0.1,0,0,R);
+    mg.addColorStop(0,'rgba(126,245,220,0.55)');
+    mg.addColorStop(1,'rgba(11,61,69,0.65)');
+    ctx.fillStyle = mg; ctx.fill();
+    ctx.strokeStyle = 'rgba(62,230,196,0.8)'; ctx.lineWidth = 2*devicePixelRatio; ctx.stroke();
+    // noyau + organites selon stade
+    const orgN = stage + 1;
+    for (let i = 0; i < orgN; i++) {
+      const a = t*0.5 + i * (Math.PI*2/orgN);
+      const rr = R*0.45;
+      const ox = Math.cos(a)*rr, oy = Math.sin(a)*rr;
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(62,230,196,0.9)';
+      ctx.arc(ox,oy,R*0.09,0,Math.PI*2); ctx.fill();
+    }
+    // noyau central
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(200,255,245,0.95)';
+    ctx.arc(0,0,R*0.18,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  return { init, draw, pulseNow, reseedBg: () => {
+    const url = assetUrl('dioramaDay');
+    if (url) { const im = new Image(); im.src = url; Diorama._bgImg = im; }
+    if (drawCell._imgs) drawCell._imgs = {};
+  }, _bgImg: null };
+})();
+
+/* ============================================================================
+   PANNEAUX
+   ============================================================================ */
+
+// ----- Organites -----
+function renderGenerators() {
+  const el = $('#panel-generators');
+  let html = '';
+  for (const g of GENERATORS) {
+    const locked = g.unlockTech && !state.techs[g.unlockTech] && !state.unlockedGens[g.id];
+    const owned = state.generators[g.id] || 0;
+    if (locked && owned === 0) {
+      html += `<div class="gen-row locked"><div class="gen-ic">🔒</div><div class="gen-main"><div class="gen-name">???</div><div class="gen-desc">Débloqué par une recherche.</div></div></div>`;
+      continue;
+    }
+    const cost = genCost(g);
+    const can = state.dna >= cost;
+    const rate = g.baseRate;
+    html += `
+      <div class="gen-row ${can ? 'affordable' : ''}" data-gen="${g.id}">
+        <div class="gen-ic">${slotIcon('gen_' + g.id, g.icon, 40)}</div>
+        <div class="gen-main">
+          <div class="gen-name">${g.name} <span class="gen-count">${owned}</span></div>
+          <div class="gen-desc">${g.desc}</div>
+          <div class="gen-rate">+${fmt(rate)} ADN/s chacun · total ${fmt(owned*rate)}/s</div>
+        </div>
+        <button class="gen-buy" data-buy="${g.id}" ${can?'':'disabled'}>
+          <span class="buy-label">Acheter</span>
+          <span class="buy-cost">🧬 ${fmt(cost)}</span>
+        </button>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ----- Arbre techno -----
+function renderTechs() {
+  const el = $('#panel-techs');
+  let html = '';
+  for (const key of Object.keys(TECH_BRANCHES)) {
+    const br = TECH_BRANCHES[key];
+    const techs = TECHS.filter(t => t.branch === key);
+    html += `<div class="tech-branch"><div class="tech-branch-head" style="--bc:${br.color}">${br.icon} ${br.name}</div>`;
+    for (const t of techs) {
+      const owned = state.techs[t.id];
+      const reqOk = !t.req || t.req.every(r => state.techs[r]);
+      const visible = reqOk || owned;
+      if (!visible) continue;
+      const cost = techCost(t);
+      const can = canBuyTech(t);
+      const maxed = t.repeatable && (state.techs[t.id]||0) >= (t.maxLevel||999);
+      const doneClass = (owned && !t.repeatable) ? 'owned' : (can ? 'affordable' : 'muted');
+      const lvlTxt = t.repeatable ? ` <span class="tech-lvl">Niv. ${state.techs[t.id]||0}</span>` : '';
+      html += `
+        <div class="tech-card ${doneClass}" data-tech="${t.id}">
+          <div class="tech-name">${t.name}${lvlTxt}</div>
+          <div class="tech-desc">${t.desc}</div>
+          <div class="tech-foot">
+            ${(owned && !t.repeatable) ? '<span class="tech-done">✔ Acquis</span>'
+              : maxed ? '<span class="tech-done">✔ Max</span>'
+              : `<button class="tech-buy" data-buytech="${t.id}" ${can?'':'disabled'}>🧬 ${fmt(cost)}</button>`}
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ----- Boutique PB -----
+function renderShop() {
+  const el = $('#panel-shop');
+  let html = `<div class="shop-intro">Dépense tes 💠 Points Bonus pour accélérer ta production.</div>`;
+  for (const b of BOOSTS) {
+    const can = state.pb >= b.costPb;
+    html += `
+      <div class="shop-row ${can?'affordable':''}">
+        <div class="shop-ic">${b.icon}</div>
+        <div class="shop-main"><div class="shop-name">${b.name}</div><div class="shop-desc">${b.desc}</div></div>
+        <button class="shop-buy" data-boost="${b.id}" ${can?'':'disabled'}>💠 ${b.costPb}</button>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ----- Mini-jeux (verrouillés en V0) -----
+function renderMinigames() {
+  const el = $('#panel-minigames');
+  const games = [
+    { id:'war', icon:'🦠', name:'Guerre primordiale', tag:'Age of War', desc:'Défense en ligne, vagues & boss (Le Mégaphage).' },
+    { id:'code', icon:'🧩', name:'Code génétique', tag:'Balatro', desc:'Deck de 52 cartes A/T/G/C, score Nucléotides × Expression.' },
+    { id:'immunity', icon:'🛡️', name:'Immunité cellulaire', tag:'Hero Realms', desc:'Deckbuilder de combat, 8 ennemis jusqu\'au Biofilm.' },
+  ];
+  let html = `<div class="mg-intro">Les mini-jeux rapportent les précieux ⭐ Points d'Âge — la seule monnaie qui fait changer d'âge. Débloque-les via l'arbre technologique.</div>`;
+  for (const g of games) {
+    const unlocked = state.unlockedMinigames[g.id];
+    html += `
+      <div class="mg-card ${unlocked?'unlocked':'locked'}">
+        <div class="mg-ic">${g.icon}</div>
+        <div class="mg-main">
+          <div class="mg-name">${g.name} <span class="mg-tag">${g.tag}</span></div>
+          <div class="mg-desc">${g.desc}</div>
+        </div>
+        <div class="mg-status">${unlocked ? '<span class="mg-soon">Bientôt jouable</span>' : '🔒 Verrouillé'}</div>
+      </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ----- Succès -----
+function renderAchievements() {
+  const el = $('#panel-achievements');
+  const done = Object.keys(state.achievements).length;
+  let html = `<div class="ach-intro">${done}/${ACHIEVEMENTS.length} · Chaque succès ajoute <b>+2%</b> de production permanente.</div><div class="ach-grid">`;
+  for (const a of ACHIEVEMENTS) {
+    const got = state.achievements[a.id];
+    html += `<div class="ach ${got?'got':'locked'}" title="${a.name} — ${a.desc}">
+      <div class="ach-ic">${got?a.icon:'❔'}</div>
+      <div class="ach-name">${got?a.name:'???'}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+// ----- Check-in -----
+function renderCheckin() {
+  const el = $('#checkin-body');
+  const doneToday = state.lastCheckinDate === todayStr();
+  let html = '';
+  html += `<div class="ci-goal">
+    <label>Objectif calorique du jour : <input id="ci-goal-input" type="number" min="800" max="6000" step="50" value="${state.calorieGoal}"> kcal</label>
+  </div>`;
+  for (const h of HABITS) {
+    const v = state.todayHabits;
+    const pb = computeHabitPb(h);
+    const valid = habitValidated(h);
+    let control = '';
+    if (h.type === 'calorie') {
+      control = `<div class="ci-cal">
+        <input id="ci-cal-input" type="number" min="0" max="6000" step="10" placeholder="kcal mangées" value="${v.calories||''}">
+        <button class="ci-cal-toggle ${v.caloriesDone?'on':''}" data-caltoggle>${v.caloriesDone?'Journée close ✔':'Clôturer la journée'}</button>
+      </div>`;
+    } else if (h.type === 'rate') {
+      control = `<div class="ci-stepper">
+        <input type="range" min="0" max="${h.max}" step="${h.step}" value="${v[h.id]||0}" data-habit="${h.id}">
+        <span class="ci-val">${fmtInt(v[h.id]||0)} ${h.unit}</span>
+      </div>`;
+    } else {
+      control = `<div class="ci-counter">
+        <button data-dec="${h.id}">−</button>
+        <span class="ci-val">${v[h.id]||0}</span>
+        <button data-inc="${h.id}">+</button>
+        <span class="ci-cap">/ ${h.capItems} max</span>
+      </div>`;
+    }
+    html += `<div class="ci-habit ${valid?'valid':''}">
+      <div class="ci-h-head"><span class="ci-h-ic">${h.icon}</span><span class="ci-h-name">${h.name}</span><span class="ci-h-pb">+${pb} 💠</span></div>
+      <div class="ci-h-desc">${h.desc}</div>
+      ${control}
+    </div>`;
+  }
+  const totalPb = previewCheckinPb();
+  const count = previewCheckinCount();
+  html += `<div class="ci-summary">
+    <div>Habitudes validées : <b>${count}/${HABITS.length}</b> → Pulsation ×${(1+count*TUNING.vitalPerHabit).toFixed(1)}</div>
+    <div>Gain : <b>+${totalPb} 💠</b>${count>=HABITS.length?' · <span class="ci-perfect">Jour parfait ✨ +1 🌱</span>':''}</div>
+    <button id="ci-validate" ${doneToday?'disabled':''}>${doneToday?'Check-in déjà fait aujourd\'hui':'✅ Valider le check-in du jour'}</button>
+  </div>`;
+  el.innerHTML = html;
+}
+
+/* ============================================================================
+   FEEDBACK : toasts, floats
+   ============================================================================ */
+function toast(msg, type = '') {
+  const c = $('#toasts');
+  const d = document.createElement('div');
+  d.className = 'toast ' + type;
+  d.innerHTML = msg;
+  c.appendChild(d);
+  setTimeout(() => d.classList.add('show'), 10);
+  setTimeout(() => { d.classList.remove('show'); setTimeout(() => d.remove(), 400); }, 3200);
+}
+function floatText(x, y, txt, cls = '') {
+  const d = document.createElement('div');
+  d.className = 'float ' + cls;
+  d.textContent = txt;
+  d.style.left = x + 'px'; d.style.top = y + 'px';
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 1200);
+}
+
+/* ---------- Rafraîchit tout ---------- */
+function renderAll() {
+  renderHud();
+  renderGenerators();
+  renderTechs();
+  renderShop();
+  renderMinigames();
+  renderAchievements();
+  updateAgeBar();
+}
+function updateAgeBar() {
+  const p = ageProgress();
+  $('#agebar-fill').style.width = (p * 100).toFixed(1) + '%';
+  $('#agebar-label').textContent = `Âge ${AGE.id} · ${AGE.name} — ${fmt(state.agePoints)}/${TUNING.agePointThreshold} ⭐ vers l'Âge 2`;
+}
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — dev.js
+   Menu développeur : console d'import d'assets (pilotée par manifeste),
+   validation automatique des dimensions PNG, export/import de sauvegarde,
+   time warp, cheats. Ouvert par le bouton ⚙︎ ou la séquence clavier "dev".
+   ============================================================================ */
+
+const Dev = (() => {
+  let open = false;
+
+  function toggle(force) {
+    open = force !== undefined ? force : !open;
+    $('#dev-overlay').classList.toggle('visible', open);
+    if (open) { renderAssets(); renderSaveTab(); }
+  }
+
+  /* ---------- Onglets ---------- */
+  function switchTab(tab) {
+    $$('.dev-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    $$('.dev-page').forEach(p => p.classList.toggle('active', p.id === 'dev-' + tab));
+  }
+
+  /* ---------- CONSOLE D'IMPORT D'ASSETS ---------- */
+  function allAssetEntries() {
+    return [...ASSET_REFS.map(r => ({ ...r, cat: 'ref', w: 1024, h: 1024, format: 'PNG-24 / JPG', represents: 'Image de référence maîtresse de la DA.' })), ...ASSET_MANIFEST];
+  }
+
+  function renderAssets() {
+    const entries = allAssetEntries();
+    const filterCat = $('#dev-asset-filter').value;
+    const filterStatus = $('#dev-asset-status').value;
+
+    let done = 0;
+    const rows = entries.filter(e => {
+      if (filterCat !== 'all' && e.cat !== filterCat) return false;
+      const has = !!assetUrl(e.slot);
+      if (filterStatus === 'done' && !has) return false;
+      if (filterStatus === 'missing' && has) return false;
+      return true;
+    });
+    entries.forEach(e => { if (assetUrl(e.slot)) done++; });
+
+    $('#dev-asset-progress-bar').style.width = (done / entries.length * 100).toFixed(0) + '%';
+    $('#dev-asset-progress-txt').textContent = `${done}/${entries.length} assets fournis`;
+
+    const grid = $('#dev-asset-grid');
+    grid.innerHTML = rows.map(e => {
+      const url = assetUrl(e.slot);
+      const status = url ? 'done' : 'missing';
+      const refs = (e.refs || []).join(', ');
+      return `
+        <div class="asset-card ${status}" data-slot="${e.slot}">
+          <div class="asset-preview">${url ? `<img src="${url}" alt="">` : '<span class="asset-ph">—</span>'}</div>
+          <div class="asset-info">
+            <div class="asset-label">${e.label}</div>
+            <div class="asset-meta"><span class="asset-cat">${e.cat}</span> · <b>${e.w}×${e.h}px</b> · ${e.format}</div>
+            <div class="asset-represents">${e.represents}</div>
+            <details class="asset-prompt">
+              <summary>Prompt & réfs</summary>
+              <div class="asset-prompt-text">${e.prompt || '—'}</div>
+              ${refs ? `<div class="asset-refs">Réfs de cohérence : ${refs}</div>` : ''}
+            </details>
+          </div>
+          <div class="asset-actions">
+            <label class="asset-upload">
+              <input type="file" accept="image/png,image/jpeg" data-upload="${e.slot}" data-w="${e.w}" data-h="${e.h}" hidden>
+              <span>${url ? 'Remplacer' : 'Importer'}</span>
+            </label>
+            ${url ? `<button class="asset-del" data-del="${e.slot}">Supprimer</button>` : ''}
+            <button class="asset-copy" data-copy="${e.slot}">Copier le prompt</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function handleUpload(input) {
+    const slot = input.dataset.upload;
+    const wantW = parseInt(input.dataset.w, 10), wantH = parseInt(input.dataset.h, 10);
+    const file = input.files[0];
+    if (!file) return;
+    const dataUrl = await fileToDataUrl(file);
+    const dim = await imgDims(dataUrl);
+    const isBg = slot.startsWith('diorama') || slot.startsWith('ref_');
+    // Validation dimensions
+    if (dim.w !== wantW || dim.h !== wantH) {
+      const msg = `Dimensions attendues ${wantW}×${wantH}px, reçu ${dim.w}×${dim.h}px.`;
+      if (!confirm(`⚠️ ${msg}\n\nImporter quand même ?`)) { input.value = ''; return; }
+    }
+    // Validation alpha (PNG-32) pour les non-fonds
+    if (!isBg && file.type !== 'image/png') {
+      if (!confirm(`⚠️ Cet asset devrait être un PNG avec canal alpha (transparence). Fichier ${file.type}. Importer quand même ?`)) { input.value=''; return; }
+    }
+    await AssetStore.put(slot, dataUrl);
+    ASSET_CACHE[slot] = dataUrl;
+    if (slot === 'dioramaDay') Diorama.reseedBg();
+    renderAssets();
+    renderAll();
+    toast('Asset importé ✔', 'good');
+    input.value = '';
+  }
+
+  function fileToDataUrl(file) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+  }
+  function imgDims(dataUrl) {
+    return new Promise(res => { const im = new Image(); im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight }); im.onerror = () => res({ w:0,h:0 }); im.src = dataUrl; });
+  }
+
+  function exportManifestReport() {
+    const entries = allAssetEntries();
+    const report = entries.map(e => ({
+      id: e.id, slot: e.slot, label: e.label, category: e.cat,
+      width_px: e.w, height_px: e.h, format: e.format,
+      status: assetUrl(e.slot) ? 'fourni' : 'manquant',
+      represents: e.represents, prompt: e.prompt || '', refs: e.refs || [],
+    }));
+    downloadText('evolve_assets_manifest_age1.json', JSON.stringify(report, null, 2));
+  }
+
+  /* ---------- SAUVEGARDE ---------- */
+  function renderSaveTab() {
+    $('#dev-save-info').innerHTML = `
+      ADN total : <b>${fmt(state.stats.totalDna)}</b> · PB total : <b>${fmt(state.stats.totalPb)}</b><br>
+      Check-ins : <b>${state.stats.checkinCount}</b> · Élan : <b>${state.streak}j</b> · Jours parfaits : <b>${state.stats.perfectDays}</b><br>
+      Créé le : ${new Date(state.createdAt).toLocaleString('fr-FR')}`;
+  }
+  function doExport() {
+    const str = exportSave();
+    downloadText('evolve_save_' + todayStr() + '.txt', str);
+    navigator.clipboard && navigator.clipboard.writeText(str).catch(()=>{});
+    toast('Sauvegarde exportée (et copiée) ✔', 'good');
+  }
+  function doImport() {
+    const str = $('#dev-import-text').value.trim();
+    if (!str) { toast('Colle d\'abord une sauvegarde.', 'bad'); return; }
+    if (importSave(str)) { toast('Sauvegarde importée ✔', 'good'); renderAll(); toggle(false); }
+    else toast('Import échoué — format invalide.', 'bad');
+  }
+
+  /* ---------- CHEATS / TIME WARP ---------- */
+  function timeWarp(hours) {
+    const gain = dnaPerSecond() * hours * 3600;
+    addDna(gain);
+    toast(`⏩ +${fmt(gain)} ADN (${hours}h simulées)`, 'good');
+    renderAll();
+  }
+  function cheat(kind) {
+    if (kind === 'dna') { addDna(1e6); }
+    else if (kind === 'pb') { addPb(500); }
+    else if (kind === 'ap') { state.agePoints += 25; }
+    else if (kind === 'seed') { addSeeds(5); }
+    else if (kind === 'unlockall') { for (const t of TECHS) if (!state.techs[t.id]) { state.techs[t.id]=1; applyTechEffect(t); } }
+    checkAchievements();
+    renderAll();
+    toast('Cheat appliqué (dev)', 'good');
+  }
+
+  function downloadText(name, text) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  /* ---------- Bind ---------- */
+  function bind() {
+    $('#dev-open').addEventListener('click', () => toggle());
+    $('#dev-close').addEventListener('click', () => toggle(false));
+    $$('.dev-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+    $('#dev-asset-filter').addEventListener('change', renderAssets);
+    $('#dev-asset-status').addEventListener('change', renderAssets);
+    $('#dev-asset-report').addEventListener('click', exportManifestReport);
+
+    $('#dev-asset-grid').addEventListener('change', e => {
+      const inp = e.target.closest('[data-upload]');
+      if (inp) handleUpload(inp);
+    });
+    $('#dev-asset-grid').addEventListener('click', async e => {
+      const del = e.target.closest('[data-del]');
+      if (del) { await AssetStore.del(del.dataset.del); delete ASSET_CACHE[del.dataset.del]; if (del.dataset.del==='dioramaDay') Diorama.reseedBg(); renderAssets(); renderAll(); toast('Asset supprimé','');return; }
+      const cp = e.target.closest('[data-copy]');
+      if (cp) {
+        const entry = allAssetEntries().find(x => x.slot === cp.dataset.copy);
+        if (entry && navigator.clipboard) { navigator.clipboard.writeText(entry.prompt || ''); toast('Prompt copié ✔','good'); }
+      }
+    });
+
+    $('#dev-export').addEventListener('click', doExport);
+    $('#dev-import-btn').addEventListener('click', doImport);
+    $('#dev-reset').addEventListener('click', () => { if (confirm('Effacer toute la progression ? (les assets importés sont conservés)')) { hardReset(); renderAll(); toggle(false); toast('Nouvelle partie','');} });
+
+    $$('[data-warp]').forEach(b => b.addEventListener('click', () => timeWarp(parseFloat(b.dataset.warp))));
+    $$('[data-cheat]').forEach(b => b.addEventListener('click', () => cheat(b.dataset.cheat)));
+
+    // Séquence clavier "dev" pour ouvrir
+    let buf = '';
+    window.addEventListener('keydown', e => {
+      buf = (buf + e.key.toLowerCase()).slice(-3);
+      if (buf === 'dev') toggle(true);
+    });
+  }
+
+  return { bind, toggle };
+})();
+
+</script>
+<script>
+/* ============================================================================
+   EVOLVE — main.js
+   Initialisation, boucle de jeu, interactions utilisateur.
+   ============================================================================ */
+
+async function boot() {
+  await preloadAssets();
+  const had = loadGame();
+
+  // Diorama
+  Diorama.init();
+  Diorama.reseedBg();
+  requestAnimationFrame(Diorama.draw);
+
+  // Nouveau jour ? réinitialise la saisie mais garde la validation d'aujourd'hui
+  const today = todayStr();
+  if (state.lastHabitDay !== today) {
+    if (state.lastCheckinDate !== today) {
+      state.todayHabits = { calories: 0, steps: 0, mf: 0, alilou: 0, rituals: 0, caloriesDone: false };
+      state.validatedToday = false;
+      state.todayCount = 0;
+    }
+    state.lastHabitDay = today;
+  }
+
+  // Offline progress
+  const off = applyOffline();
+  if (off && off.gain > 1) showOfflineModal(off);
+
+  if (!state.nextGoldenAt || state.nextGoldenAt < Date.now()) scheduleGolden();
+
+  bindUI();
+  Dev.bind();
+  renderAll();
+  renderCheckin();
+  checkAchievements();
+
+  // Boucles
+  let last = performance.now();
+  setInterval(() => {
+    const now = performance.now();
+    const dt = (now - last) / 1000;
+    last = now;
+    tick(dt);
+    state.lastTick = Date.now();
+
+    // succès nouvellement débloqués
+    const newly = checkAchievements();
+    for (const a of newly) toast(`🏆 Succès : <b>${a.name}</b> (+2% production)`, 'good');
+
+    // nutriment doré
+    maybeSpawnGolden();
+    renderHud();
+  }, 100);
+
+  // Rafraîchir les panneaux moins souvent (perf)
+  setInterval(() => { renderGenerators(); renderTechs(); renderShop(); }, 500);
+  setInterval(() => { renderAchievements(); renderMinigames(); updateAgeBar(); }, 1500);
+
+  // Auto-save
+  setInterval(saveGame, 10000);
+  window.addEventListener('beforeunload', saveGame);
+
+  // Splash off
+  setTimeout(() => $('#splash').classList.add('hidden'), 400);
+}
+
+/* ---------- Modale offline ---------- */
+function showOfflineModal(off) {
+  const m = $('#offline-modal');
+  $('#offline-text').innerHTML =
+    `Pendant ton absence (${fmtTime(off.seconds)}${off.full > off.seconds ? ', plafonné à '+off.cappedAt+'h' : ''}),<br>ta cellule a produit <b>+${fmt(off.gain)} 🧬 ADN</b>.`;
+  m.classList.add('visible');
+  $('#offline-ok').onclick = () => m.classList.remove('visible');
+}
+
+/* ---------- Nutriment doré ---------- */
+let goldenEl = null;
+function maybeSpawnGolden() {
+  if (goldenEl) return;
+  if (Date.now() < state.nextGoldenAt) return;
+  spawnGolden();
+}
+function spawnGolden() {
+  const zone = $('#diorama-wrap').getBoundingClientRect();
+  const el = document.createElement('button');
+  el.className = 'golden';
+  el.innerHTML = assetUrl('icon_golden') ? `<img src="${assetUrl('icon_golden')}" alt="">` : '🌟';
+  const pad = 60;
+  el.style.left = (zone.left + pad + Math.random() * (zone.width - pad*2)) + 'px';
+  el.style.top = (zone.top + pad + Math.random() * (zone.height - pad*2)) + 'px';
+  el.title = 'Nutriment doré — clique vite !';
+  document.body.appendChild(el);
+  goldenEl = el;
+  const life = setTimeout(() => { if (goldenEl===el) { el.remove(); goldenEl=null; scheduleGolden(); } }, 9000);
+  el.addEventListener('click', () => {
+    clearTimeout(life);
+    const r = catchGolden();
+    floatText(parseFloat(el.style.left), parseFloat(el.style.top), `+${fmt(r.gain)} ADN !`, 'golden-float');
+    el.remove(); goldenEl = null;
+    Diorama.pulseNow();
+    toast(`🌟 Nutriment doré : <b>+${fmt(r.gain)} ADN</b> !`, 'good');
+    renderHud();
+  });
+}
+
+/* ---------- Interactions ---------- */
+function bindUI() {
+  // Onglets latéraux
+  $$('.nav-btn').forEach(b => b.addEventListener('click', () => {
+    $$('.nav-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + b.dataset.panel + '-wrap'));
+  }));
+
+  // Achats organites (délégation)
+  $('#panel-generators').addEventListener('click', e => {
+    const btn = e.target.closest('[data-buy]');
+    if (!btn) return;
+    const mode = $('#buymode').value;
+    let ok;
+    if (mode === 'max') ok = buyMaxGenerator(btn.dataset.buy);
+    else ok = buyGenerator(btn.dataset.buy, parseInt(mode, 10));
+    if (ok) { Diorama.pulseNow(); renderGenerators(); renderHud(); }
+  });
+
+  // Achats techno
+  $('#panel-techs').addEventListener('click', e => {
+    const btn = e.target.closest('[data-buytech]');
+    if (!btn) return;
+    if (buyTech(btn.dataset.buytech)) {
+      const t = TECHS.find(x=>x.id===btn.dataset.buytech);
+      toast(`🔬 Recherche : <b>${t.name}</b>`, 'good');
+      renderAll();
+    }
+  });
+
+  // Boutique boosts
+  $('#panel-shop').addEventListener('click', e => {
+    const btn = e.target.closest('[data-boost]');
+    if (!btn) return;
+    if (buyBoost(btn.dataset.boost)) { renderShop(); renderHud();
+      const b = BOOSTS.find(x=>x.id===btn.dataset.boost);
+      toast(`${b.icon} ${b.name} activé`, 'good');
+    }
+  });
+
+  // Check-in : ouvrir / fermer
+  $('#open-checkin').addEventListener('click', () => { renderCheckin(); $('#checkin-modal').classList.add('visible'); });
+  $('#checkin-close').addEventListener('click', () => $('#checkin-modal').classList.remove('visible'));
+
+  // Check-in interactions (délégation)
+  $('#checkin-body').addEventListener('input', e => {
+    const v = state.todayHabits;
+    if (e.target.id === 'ci-goal-input') { state.calorieGoal = clampNum(e.target.value, 800, 6000); }
+    if (e.target.id === 'ci-cal-input') { v.calories = clampNum(e.target.value, 0, 6000); }
+    const range = e.target.closest('[data-habit]');
+    if (range) { v[range.dataset.habit] = parseInt(range.value, 10); }
+    refreshCheckinLight();
+  });
+  $('#checkin-body').addEventListener('click', e => {
+    const v = state.todayHabits;
+    const inc = e.target.closest('[data-inc]'); const dec = e.target.closest('[data-dec]');
+    const tog = e.target.closest('[data-caltoggle]');
+    if (inc) { const h=HABITS.find(x=>x.id===inc.dataset.inc); v[inc.dataset.inc]=Math.min((v[inc.dataset.inc]||0)+1, h.capItems); renderCheckin(); }
+    if (dec) { v[dec.dataset.dec]=Math.max((v[dec.dataset.dec]||0)-1,0); renderCheckin(); }
+    if (tog) { v.caloriesDone = !v.caloriesDone; renderCheckin(); }
+    if (e.target.id === 'ci-validate') validateCheckin();
+  });
+
+  // Bouton diorama (clic actif = petit gain, comme un clicker)
+  $('#diorama-wrap').addEventListener('click', e => {
+    if (e.target.closest('.golden')) return;
+    const gain = Math.max(1, dnaPerSecond() * 1 + 1); // 1s de prod par tap
+    addDna(gain);
+    floatText(e.clientX, e.clientY, `+${fmt(gain)}`, 'tap-float');
+  });
+}
+
+function refreshCheckinLight() {
+  const totalPb = previewCheckinPb();
+  const count = previewCheckinCount();
+  const sum = $('.ci-summary');
+  if (sum) sum.querySelector('div').innerHTML = `Habitudes validées : <b>${count}/${HABITS.length}</b> → Pulsation ×${(1+count*TUNING.vitalPerHabit).toFixed(1)}`;
+}
+
+function validateCheckin() {
+  const r = doCheckin();
+  if (r.already) { toast('Check-in déjà fait aujourd\'hui.', ''); return; }
+  Diorama.pulseNow();
+  $('#checkin-modal').classList.remove('visible');
+  let msg = `Check-in validé : <b>+${r.pbGain} 💠</b> · ${r.count}/${r.total} habitudes`;
+  if (r.perfect) msg += ` · <b>Jour parfait ✨ ×${TUNING.perfectDayMult} 1h + 1 🌱</b>`;
+  toast(msg, 'good');
+  if (r.streak >= 2) toast(`🔥 Élan : ${r.streak} jours`, 'good');
+  checkAchievements();
+  renderAll();
+  saveGame();
+}
+
+function clampNum(v, lo, hi) { v = parseFloat(v)||0; return Math.max(lo, Math.min(hi, v)); }
+
+document.addEventListener('DOMContentLoaded', boot);
+
+</script>
+</body>
+</html>
