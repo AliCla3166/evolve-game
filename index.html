@@ -14,6 +14,9 @@
 <meta name="apple-mobile-web-app-title" content="EVOLVE">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 /* ============================================================================
    EVOLVE — style.css  (DA : sublime sombre mais chaleureux)
@@ -377,6 +380,17 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 #ascend-modal .modal-box.small{text-align:left;width:min(460px,94vw)}
 @media(max-width:820px){ #ascend-btn{bottom:44px;font-size:13px;padding:10px 16px} }
 
+/* ============================ SAUVEGARDE CLOUD ============================ */
+#cloud-open{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.6}
+#cloud-open:hover{opacity:1}
+#cloud-open.on{opacity:1;border-color:rgba(62,230,196,.6);box-shadow:0 0 10px rgba(62,230,196,.4)}
+#cloud-body .cloud-msg{font-size:14px;margin:6px 0;line-height:1.5}
+#cloud-body .cloud-sub{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0}
+.cloud-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.cloud-btns button{padding:11px;border-radius:10px;font-weight:700;border:1px solid var(--line);background:var(--card)}
+.cloud-btns .btn-primary{border:none}
+@media(max-width:820px){ #cloud-open{width:34px;height:34px} }
+
 </style>
 </head>
 <body>
@@ -402,6 +416,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <span class="res-ic">🌱</span><span class="res-val" id="hud-seed">0</span>
     </div>
   </div>
+  <button id="cloud-open" title="Sauvegarde cloud">☁️</button>
   <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
 </header>
 
@@ -509,6 +524,13 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <button id="ascend-cancel">Pas encore</button>
       <button id="ascend-confirm" class="btn-primary">✨ Évoluer</button>
     </div>
+  </div>
+</div>
+
+<div id="cloud-modal" class="modal">
+  <div class="modal-box small">
+    <div class="modal-head"><h2>☁️ Sauvegarde cloud</h2><button id="cloud-close">✕</button></div>
+    <div id="cloud-body"></div>
   </div>
 </div>
 
@@ -1066,6 +1088,16 @@ function importSave(str) {
     return true;
   } catch (e) { console.error('import failed', e); return false; }
 }
+function applyStateObject(obj) {
+  try {
+    state = Object.assign(defaultState(), obj);
+    state.stats = Object.assign(defaultState().stats, obj.stats || {});
+    if (!state.todayHabits) state.todayHabits = emptyHabits();
+    saveGame();
+    return true;
+  } catch (e) { console.error('applyStateObject', e); return false; }
+}
+
 function hardReset() {
   localStorage.removeItem(SAVE_KEY);
   state = defaultState();
@@ -2902,6 +2934,155 @@ window.Age = Age;
 </script>
 <script>
 /* ============================================================================
+   EVOLVE — cloud.js
+   Sauvegarde cloud (Firebase Auth + Firestore) : connexion Google, puis
+   synchronisation automatique PC ↔ mobile. Tout est optionnel : si la config
+   n'est pas remplie ou Firebase indisponible, le jeu tourne en local normalement.
+   ============================================================================ */
+
+/* >>> Config Firebase (remplie automatiquement une fois le projet créé) <<< */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCA-kr8YmfpgR8O-JaTtuPkULF-mIZSz74",
+  authDomain: "evolve-game-ebc60.firebaseapp.com",
+  projectId: "evolve-game-ebc60",
+  storageBucket: "evolve-game-ebc60.firebasestorage.app",
+  messagingSenderId: "601308452965",
+  appId: "1:601308452965:web:4d540e39e4494a68920e8c",
+};
+
+const Cloud = (() => {
+  let auth=null, db=null, user=null, configured=false, pushTimer=0, lastSync=0, busy=false;
+
+  function isConfigured() {
+    return !!(FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('PASTE'));
+  }
+
+  function init() {
+    configured = isConfigured() && typeof firebase !== 'undefined';
+    bind();
+    if (!configured) { updateUI(); return; }
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      auth = firebase.auth(); db = firebase.firestore();
+      // persistance de session (reste connecté)
+      auth.onAuthStateChanged(async (u) => {
+        user = u; updateUI();
+        if (u) { await pull(); startAutoPush(); toast(`☁️ Connecté : ${u.displayName||u.email||'compte'}`, 'good'); }
+        else { stopAutoPush(); }
+      });
+      // retour de redirect (mobile)
+      auth.getRedirectResult().catch(()=>{});
+    } catch (e) { console.warn('cloud init', e); configured=false; updateUI(); }
+  }
+
+  async function signIn() {
+    if (!configured) { toast('Cloud non configuré', 'bad'); return; }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try { await auth.signInWithPopup(provider); }
+    catch (e) {
+      // popup bloquée (mobile) → redirect
+      try { await auth.signInWithRedirect(provider); }
+      catch (e2) { console.warn('signIn', e2); toast('Connexion impossible', 'bad'); }
+    }
+  }
+  function signOut() { if (auth) auth.signOut(); toast('Déconnecté du cloud', ''); }
+
+  /* Heuristique de progression : choisit la sauvegarde la plus avancée */
+  function score(s) {
+    if (!s) return -1;
+    return (s.meta?.agesReached||1)*1e15 + (s.agePoints||0)*1e9
+         + (s.stats?.totalDna||0) + (s.stats?.totalPb||0)*1e3
+         + Object.values(s.collection||{}).reduce((a,c)=>a+(c.count||0),0)*1e6;
+  }
+
+  async function pull() {
+    if (!user || !db) return;
+    busy=true; updateUI();
+    try {
+      const ref = db.collection('saves').doc(user.uid);
+      const snap = await ref.get();
+      const cloud = snap.exists ? snap.data() : null;
+      const local = state;
+      if (cloud && score(cloud) > score(local)) {
+        if (typeof applyStateObject==='function') applyStateObject(cloud);
+        if (typeof renderAll==='function') renderAll();
+        if (window.Fishing) { Fishing.renderMare(); Fishing.renderCollection(); }
+        if (window.Age) Age.refresh();
+        toast('☁️ Partie cloud chargée (plus avancée)', 'good');
+      } else {
+        await push();   // le local est plus avancé (ou pas de cloud) → on téléverse
+      }
+      lastSync = Date.now();
+    } catch (e) { console.warn('cloud pull', e); }
+    busy=false; updateUI();
+  }
+
+  async function push() {
+    if (!user || !db) return false;
+    try {
+      const data = JSON.parse(JSON.stringify(state));
+      data._syncedAt = Date.now();
+      await db.collection('saves').doc(user.uid).set(data);
+      lastSync = Date.now(); updateUI();
+      return true;
+    } catch (e) { console.warn('cloud push', e); return false; }
+  }
+
+  function startAutoPush() {
+    stopAutoPush();
+    pushTimer = setInterval(() => { if (user) push(); }, 20000);
+    window.addEventListener('pagehide', pushOnLeave);
+    document.addEventListener('visibilitychange', onVis);
+  }
+  function stopAutoPush() { if (pushTimer) clearInterval(pushTimer); pushTimer=0; window.removeEventListener('pagehide', pushOnLeave); document.removeEventListener('visibilitychange', onVis); }
+  function pushOnLeave(){ if (user) push(); }
+  function onVis(){ if (document.hidden && user) push(); }
+
+  /* ---------- UI ---------- */
+  function bind() {
+    const open = document.getElementById('cloud-open');
+    if (open) open.addEventListener('click', () => { updateUI(); document.getElementById('cloud-modal').classList.add('visible'); });
+    const close = document.getElementById('cloud-close');
+    if (close) close.addEventListener('click', () => document.getElementById('cloud-modal').classList.remove('visible'));
+    const bIn = document.getElementById('cloud-signin'); if (bIn) bIn.addEventListener('click', signIn);
+    const bOut = document.getElementById('cloud-signout'); if (bOut) bOut.addEventListener('click', signOut);
+    const bSync = document.getElementById('cloud-sync'); if (bSync) bSync.addEventListener('click', async ()=>{ await push(); toast('☁️ Synchronisé','good'); });
+  }
+  function updateUI() {
+    const dot = document.getElementById('cloud-open');
+    if (dot) dot.classList.toggle('on', !!user);
+    const body = document.getElementById('cloud-body');
+    if (!body) return;
+    if (!configured) {
+      body.innerHTML = `<p class="cloud-msg">Le cloud n'est pas encore configuré pour cette version. La sauvegarde locale reste active.</p>`;
+      return;
+    }
+    if (user) {
+      const when = lastSync ? new Date(lastSync).toLocaleTimeString('fr-FR') : '—';
+      body.innerHTML = `
+        <p class="cloud-msg">Connecté : <b>${user.displayName||user.email||'compte Google'}</b></p>
+        <p class="cloud-sub">Ta progression se synchronise automatiquement. Connecte-toi avec le même compte Google sur ton autre appareil pour reprendre.</p>
+        <p class="cloud-sub">Dernière synchro : ${busy?'en cours…':when}</p>
+        <div class="cloud-btns">
+          <button id="cloud-sync" class="btn-primary">☁️ Synchroniser maintenant</button>
+          <button id="cloud-signout">Se déconnecter</button>
+        </div>`;
+    } else {
+      body.innerHTML = `
+        <p class="cloud-msg">Sauvegarde cloud & synchro PC ↔ mobile.</p>
+        <p class="cloud-sub">Connecte-toi avec Google sur chaque appareil : ta partie te suit partout, en continu.</p>
+        <div class="cloud-btns"><button id="cloud-signin" class="btn-primary">Se connecter avec Google</button></div>`;
+    }
+    bind();
+  }
+
+  return { init, signIn, signOut, push, pull };
+})();
+window.Cloud = Cloud;
+
+</script>
+<script>
+/* ============================================================================
    EVOLVE — dev.js
    Menu développeur : console d'import d'assets (pilotée par manifeste),
    validation automatique des dimensions PNG, export/import de sauvegarde,
@@ -3143,6 +3324,7 @@ async function boot() {
   Dev.bind();
   if (window.Fishing) Fishing.init();
   if (window.Age) Age.init();
+  if (window.Cloud) Cloud.init();
   renderAll();
   renderCheckin();
   checkAchievements();
