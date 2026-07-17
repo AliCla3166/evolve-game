@@ -3592,6 +3592,79 @@ const Cloud = (() => {
   }
   function signOut() { if (auth) auth.signOut(); toast('Déconnecté du cloud', ''); }
 
+  /* Modale de choix quand cloud et local divergent : au lieu de toujours forcer "la sauvegarde
+     la plus avancée" sans prévenir (ce qui empêchait de reprendre une autre partie que celle-là),
+     on laisse la personne choisir explicitement laquelle garder. */
+  function chooseSaveSource(cloud, local) {
+    return new Promise(resolve => {
+      let modal = document.getElementById('cloud-choice-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'cloud-choice-modal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+      }
+      const info = (s) => {
+        const age = AGES.find(a => a.id === (s.ageId||1));
+        return {
+          ageName: age ? age.name : ('Âge ' + (s.ageId||1)),
+          dna: fmt((s.stats && s.stats.totalDna) || 0),
+          when: s._syncedAt ? new Date(s._syncedAt).toLocaleString('fr-FR') : (s.lastSave ? new Date(s.lastSave).toLocaleString('fr-FR') : '—'),
+        };
+      };
+      const li = info(local), ci = info(cloud);
+      modal.innerHTML = `<div class="modal-box small">
+        <div class="modal-head"><h2>Quelle sauvegarde utiliser ?</h2></div>
+        <p style="color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px;text-align:left">Cet appareil et ton compte cloud n'ont pas la même progression. Choisis laquelle garder — l'autre sera écrasée par la suite.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button id="cloud-choice-local" style="text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);width:100%">
+            <div style="font-weight:800;margin-bottom:3px">📱 Cet appareil</div>
+            <div style="font-size:12px;color:var(--muted)">${li.ageName} · ${li.dna} ADN total · modifié ${li.when}</div>
+          </button>
+          <button id="cloud-choice-cloud" style="text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);width:100%">
+            <div style="font-weight:800;margin-bottom:3px">☁️ Sauvegarde cloud</div>
+            <div style="font-size:12px;color:var(--muted)">${ci.ageName} · ${ci.dna} ADN total · synchronisée ${ci.when}</div>
+          </button>
+        </div>
+      </div>`;
+      modal.classList.add('visible');
+      function cleanup(result) { modal.classList.remove('visible'); resolve(result); }
+      document.getElementById('cloud-choice-local').addEventListener('click', () => cleanup('local'));
+      document.getElementById('cloud-choice-cloud').addEventListener('click', () => cleanup('cloud'));
+    });
+  }
+
+  async function applyChoice(choice, cloud) {
+    if (choice === 'cloud') {
+      if (typeof applyStateObject==='function') applyStateObject(cloud);
+      if (typeof renderAll==='function') renderAll();
+      if (window.Fishing) { Fishing.renderMare(); Fishing.renderCollection(); }
+      if (window.Age) Age.refresh();
+      toast('☁️ Sauvegarde cloud chargée', 'good');
+    } else {
+      await push();
+      toast('Sauvegarde de cet appareil conservée (et synchronisée)', 'good');
+    }
+  }
+
+  // Choix manuel, accessible à tout moment depuis le panneau cloud (pas seulement à la connexion) :
+  // permet de délibérément reprendre l'autre sauvegarde même sans "conflit" détecté automatiquement.
+  async function chooseManually() {
+    if (isDevProfile()) { toast('Indisponible sur le profil Dev', 'bad'); return; }
+    if (!user || !db) { toast('Connecte-toi au cloud d\'abord', 'bad'); return; }
+    busy=true; updateUI();
+    try {
+      const ref = db.collection('saves').doc(user.uid);
+      const snap = await ref.get();
+      const cloud = snap.exists ? snap.data() : null;
+      if (!cloud) { toast('Aucune sauvegarde cloud pour ce compte', 'bad'); busy=false; updateUI(); return; }
+      const choice = await chooseSaveSource(cloud, state);
+      await applyChoice(choice, cloud);
+      lastSync = Date.now();
+    } catch (e) { console.warn('cloud chooseManually', e); }
+    busy=false; updateUI();
+  }
+
   /* Heuristique de progression : choisit la sauvegarde la plus avancée */
   function score(s) {
     if (!s) return -1;
@@ -3609,14 +3682,14 @@ const Cloud = (() => {
       const snap = await ref.get();
       const cloud = snap.exists ? snap.data() : null;
       const local = state;
-      if (cloud && score(cloud) > score(local)) {
-        if (typeof applyStateObject==='function') applyStateObject(cloud);
-        if (typeof renderAll==='function') renderAll();
-        if (window.Fishing) { Fishing.renderMare(); Fishing.renderCollection(); }
-        if (window.Age) Age.refresh();
-        toast('☁️ Partie cloud chargée (plus avancée)', 'good');
-      } else {
-        await push();   // le local est plus avancé (ou pas de cloud) → on téléverse
+      if (cloud && score(cloud) !== score(local)) {
+        // Les deux sauvegardes divergent : on laisse la personne choisir plutôt que de forcer
+        // silencieusement "la plus avancée" (c'était le comportement qui empêchait de reprendre
+        // volontairement une partie différente sur cet appareil).
+        const choice = await chooseSaveSource(cloud, local);
+        await applyChoice(choice, cloud);
+      } else if (!cloud) {
+        await push();   // pas de sauvegarde cloud encore → on téléverse la locale
       }
       lastSync = Date.now();
     } catch (e) { console.warn('cloud pull', e); }
@@ -3654,6 +3727,7 @@ const Cloud = (() => {
     const bIn = document.getElementById('cloud-signin'); if (bIn) bIn.addEventListener('click', signIn);
     const bOut = document.getElementById('cloud-signout'); if (bOut) bOut.addEventListener('click', signOut);
     const bSync = document.getElementById('cloud-sync'); if (bSync) bSync.addEventListener('click', async ()=>{ await push(); toast('☁️ Synchronisé','good'); });
+    const bChoose = document.getElementById('cloud-choose'); if (bChoose) bChoose.addEventListener('click', chooseManually);
   }
   function updateUI() {
     const dot = document.getElementById('cloud-open');
@@ -3676,6 +3750,7 @@ const Cloud = (() => {
         <p class="cloud-sub">Dernière synchro : ${busy?'en cours…':when}</p>
         <div class="cloud-btns">
           <button id="cloud-sync" class="btn-primary">☁️ Synchroniser maintenant</button>
+          <button id="cloud-choose">🔀 Choisir une sauvegarde</button>
           <button id="cloud-signout">Se déconnecter</button>
         </div>`;
     } else {
@@ -3687,7 +3762,7 @@ const Cloud = (() => {
     bind();
   }
 
-  return { init, signIn, signOut, push, pull };
+  return { init, signIn, signOut, push, pull, chooseManually };
 })();
 window.Cloud = Cloud;
 
