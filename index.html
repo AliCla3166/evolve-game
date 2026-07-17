@@ -1088,6 +1088,7 @@ const ASSET_CACHE = {};
 function loadableUrl(url) {
   return new Promise(res => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => res(true);
     img.onerror = () => res(false);
     img.src = url;
@@ -1878,7 +1879,7 @@ const Diorama = (() => {
     const R = base * breathe;
     if (url) {
       if (!drawCell._imgs) drawCell._imgs = {};
-      if (!drawCell._imgs[slot]) { const im = new Image(); im.src = url; drawCell._imgs[slot] = im; }
+      if (!drawCell._imgs[slot]) { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = url; drawCell._imgs[slot] = im; }
       const im = drawCell._imgs[slot];
       if (im.complete) { ctx.globalAlpha = 1; ctx.drawImage(im, cx - R, cy - R, R*2, R*2); return; }
     }
@@ -1921,7 +1922,7 @@ const Diorama = (() => {
   }
   return { init, draw, pulseNow, evolutionBurst, evoScale, reseedBg: () => {
     const url = assetUrl('dioramaDay');
-    if (url) { const im = new Image(); im.src = url; Diorama._bgImg = im; }
+    if (url) { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = url; Diorama._bgImg = im; }
     if (drawCell._imgs) drawCell._imgs = {};
   }, _bgImg: null };
 })();
@@ -2503,7 +2504,7 @@ function drawCreature(ctx, x, y, s, c, t, alpha) {
   const url = creatureAssetUrl(c);
   if (url) {
     drawCreature._imgs = drawCreature._imgs || {};
-    if (!drawCreature._imgs[c.id]) { const im = new Image(); im.src = url; drawCreature._imgs[c.id] = im; }
+    if (!drawCreature._imgs[c.id]) { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = url; drawCreature._imgs[c.id] = im; }
     const im = drawCreature._imgs[c.id];
     if (im.complete && im.naturalWidth) { ctx.globalAlpha = alpha; ctx.drawImage(im, x - s, y - s, s * 2, s * 2); ctx.globalAlpha = 1; return; }
   }
@@ -2577,7 +2578,7 @@ function drawMainCreature(ctx, w, h, t) {
   const R = base * breathe * evoPop;
   if (url) {
     drawMainCreature._imgs = drawMainCreature._imgs || {};
-    if (drawMainCreature._cur !== url) { const im = new Image(); im.src = url; drawMainCreature._imgs[url] = im; drawMainCreature._cur = url; }
+    if (drawMainCreature._cur !== url) { const im = new Image(); im.crossOrigin = 'anonymous'; im.src = url; drawMainCreature._imgs[url] = im; drawMainCreature._cur = url; }
     const im = drawMainCreature._imgs[url];
     if (im && im.complete && im.naturalWidth) {
       const sway = Math.sin(t*0.8)*R*0.05;
@@ -2798,7 +2799,7 @@ const Pond = (() => {
     const m = fMods();
     ctx.clearRect(0,0,W,H);
     const bgUrl = assetUrl('dioramaNight')||assetUrl('dioramaDay');
-    if (bgUrl){ Pond._bg = Pond._bg||{}; if(!Pond._bg[bgUrl]){const im=new Image();im.src=bgUrl;Pond._bg[bgUrl]=im;} const im=Pond._bg[bgUrl]; if(im.complete&&im.naturalWidth){const sc=Math.max(W/im.width,H/im.height);ctx.globalAlpha=0.5;ctx.drawImage(im,(W-im.width*sc)/2,(H-im.height*sc)/2,im.width*sc,im.height*sc);ctx.globalAlpha=1;} else pondBg(); }
+    if (bgUrl){ Pond._bg = Pond._bg||{}; if(!Pond._bg[bgUrl]){const im=new Image();im.crossOrigin='anonymous';im.src=bgUrl;Pond._bg[bgUrl]=im;} const im=Pond._bg[bgUrl]; if(im.complete&&im.naturalWidth){const sc=Math.max(W/im.width,H/im.height);ctx.globalAlpha=0.5;ctx.drawImage(im,(W-im.width*sc)/2,(H-im.height*sc)/2,im.width*sc,im.height*sc);ctx.globalAlpha=1;} else pondBg(); }
     else pondBg();
 
     spawnTimer -= dt;
@@ -2929,7 +2930,13 @@ function creatureThumb(c) {
   const cv = document.createElement('canvas'); cv.width=cv.height=72;
   const cx = cv.getContext('2d');
   drawCreature(cx, 36, 36, 22, c, 1.2, 1);
-  const url = cv.toDataURL(); FISH_THUMBS[c.id]=url; return url;
+  try {
+    const url = cv.toDataURL(); FISH_THUMBS[c.id]=url; return url;
+  } catch (e) {
+    // Canvas "taintée" (asset cross-origin sans CORS) : on n'échoue pas le boot, on retente juste au prochain rendu.
+    console.warn('creatureThumb: export impossible pour', c.id, e.message);
+    return '';
+  }
 }
 
 const FISH_CATS = { skill:'🎯 Précision', luck:'✨ Chance & bancs', eco:'💰 Économie', combo:'🔥 Combo', multi:'🎣 Multi-prise', auto:'⚙️ Automatisation', meta:'🌌 Synergies' };
