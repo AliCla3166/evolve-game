@@ -61,6 +61,11 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .hud-left{display:flex;flex-direction:column;line-height:1}
 .hud-title{font-weight:800;letter-spacing:.14em;color:var(--accent);font-size:18px}
 .hud-age{font-size:11px;color:var(--muted);margin-top:3px}
+#dev-mode-badge{margin-top:4px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,183,77,.18);
+  border:1px solid rgba(255,183,77,.5);color:#ffb74d;font-size:10px;font-weight:800;letter-spacing:.05em;
+  padding:2px 8px;border-radius:999px;cursor:pointer;animation:devPulse 2.4s infinite}
+@keyframes devPulse{0%,100%{box-shadow:0 0 0 rgba(255,183,77,0)}50%{box-shadow:0 0 10px rgba(255,183,77,.5)}}
+body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
 .hud-res{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
 .res{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:6px 12px;font-variant-numeric:tabular-nums}
@@ -325,6 +330,8 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .dev-btn-row{display:flex;gap:8px;flex-wrap:wrap}
 .dev-btn-row button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px}
 .dev-btn-row button:hover{border-color:rgba(62,230,196,.4)}
+#dev-profile-main.active,#dev-profile-dev.active{color:var(--accent);border-color:rgba(62,230,196,.5);background:rgba(62,230,196,.1)}
+#dev-cheats-row.locked{opacity:.35;pointer-events:none;filter:grayscale(1)}
 
 /* ---------- Champs de saisie : autoriser la sélection/saisie ---------- */
 input, textarea, select { user-select:text; -webkit-user-select:text; touch-action:manipulation; }
@@ -490,6 +497,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   <div class="hud-left">
     <div class="hud-title">EVOLVE</div>
     <div class="hud-age">Âge 1 · Cellule</div>
+    <div id="dev-mode-badge" title="Cliquer pour revenir à ton compte perso" hidden>🧪 MODE DEV</div>
   </div>
   <div class="hud-res">
     <div class="res res-dna" title="ADN — ressource-mère">
@@ -711,14 +719,22 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     </div>
 
     <div class="dev-page" id="dev-cheats">
+      <h3>👤 Profil actif</h3>
+      <div id="dev-profile-info" class="dev-save-info"></div>
+      <div class="dev-btn-row">
+        <button id="dev-profile-main">👤 Compte perso (cloud Google)</button>
+        <button id="dev-profile-dev">🧪 Profil Dev (test local, jamais synchronisé)</button>
+      </div>
+
       <h3>⏩ Time warp</h3>
       <div class="dev-btn-row">
         <button data-warp="1">+1 h</button>
         <button data-warp="8">+8 h</button>
         <button data-warp="24">+24 h</button>
       </div>
-      <h3>🧪 Cheats (dev only)</h3>
-      <div class="dev-btn-row">
+      <h3>🧪 Cheats — profil Dev uniquement</h3>
+      <div id="dev-cheats-hint" class="dev-save-info" hidden>Bascule sur le <b>profil Dev</b> ci-dessus pour activer les cheats. Ils restent désactivés sur ton compte perso pour ne jamais fausser ta progression réelle.</div>
+      <div id="dev-cheats-row" class="dev-btn-row">
         <button data-cheat="dna">+1M ADN</button>
         <button data-cheat="pb">+500 PB</button>
         <button data-cheat="ap">+25 ⭐</button>
@@ -1215,6 +1231,22 @@ function assetUrl(slot) { return ASSET_CACHE[slot] || null; }
    ============================================================================ */
 
 const SAVE_KEY = 'evolve_save_v1';
+const DEV_SAVE_KEY = 'evolve_save_dev_v1';   // sauvegarde du profil "Dev" — locale uniquement, jamais synchronisée au cloud
+const PROFILE_KEY = 'evolve_active_profile'; // 'main' (compte perso, synchro Google) | 'dev' (bac à sable local pour les cheats)
+function activeProfile() { return localStorage.getItem(PROFILE_KEY) || 'main'; }
+function isDevProfile() { return activeProfile() === 'dev'; }
+function currentSaveKey() { return isDevProfile() ? DEV_SAVE_KEY : SAVE_KEY; }
+// Bascule entre le compte perso (cloud) et le profil Dev (cheats, jamais synchronisé).
+// Au premier passage en Dev, on clone la partie en cours comme point de départ pour tester "en contexte".
+function switchProfile(target) {
+  if (target === activeProfile()) return;
+  saveGame();
+  if (target === 'dev' && !localStorage.getItem(DEV_SAVE_KEY)) {
+    localStorage.setItem(DEV_SAVE_KEY, JSON.stringify(state));
+  }
+  localStorage.setItem(PROFILE_KEY, target);
+  location.reload();
+}
 
 /* ---------- État par défaut ---------- */
 function defaultState() {
@@ -1286,14 +1318,14 @@ function setState(s) { state = s; }
 function saveGame() {
   try {
     state.lastSave = Date.now();
-    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    localStorage.setItem(currentSaveKey(), JSON.stringify(state));
     return true;
   } catch (e) { console.error('save failed', e); return false; }
 }
 
 function loadGame() {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(currentSaveKey());
     if (!raw) return false;
     const loaded = JSON.parse(raw);
     state = Object.assign(defaultState(), loaded);
@@ -1326,7 +1358,7 @@ function applyStateObject(obj) {
 }
 
 function hardReset() {
-  localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem(currentSaveKey());
   state = defaultState();
   saveGame();
 }
@@ -3447,6 +3479,7 @@ const Cloud = (() => {
       // persistance de session (reste connecté)
       auth.onAuthStateChanged(async (u) => {
         user = u; updateUI();
+        if (isDevProfile()) { stopAutoPush(); return; } // le profil Dev ne touche jamais le cloud
         if (u) { await pull(); startAutoPush(); toast(`☁️ Connecté : ${u.displayName||u.email||'compte'}`, 'good'); }
         else { stopAutoPush(); }
       });
@@ -3476,6 +3509,7 @@ const Cloud = (() => {
   }
 
   async function pull() {
+    if (isDevProfile()) return; // garde-fou : jamais de lecture cloud en profil Dev
     if (!user || !db) return;
     busy=true; updateUI();
     try {
@@ -3498,6 +3532,7 @@ const Cloud = (() => {
   }
 
   async function push() {
+    if (isDevProfile()) return false; // garde-fou : jamais d'écriture cloud en profil Dev
     if (!user || !db) return false;
     try {
       const data = JSON.parse(JSON.stringify(state));
@@ -3535,6 +3570,10 @@ const Cloud = (() => {
     if (!body) return;
     if (!configured) {
       body.innerHTML = `<p class="cloud-msg">Le cloud n'est pas encore configuré pour cette version. La sauvegarde locale reste active.</p>`;
+      return;
+    }
+    if (isDevProfile()) {
+      body.innerHTML = `<p class="cloud-msg">🧪 Profil Dev actif.</p><p class="cloud-sub">Le cloud est désactivé sur ce profil pour ne jamais écraser ton compte perso. Reviens sur ton profil perso (menu développeur → Outils) pour synchroniser.</p>`;
       return;
     }
     if (user) {
@@ -3575,13 +3614,29 @@ const Dev = (() => {
   function toggle(force) {
     open = force !== undefined ? force : !open;
     $('#dev-overlay').classList.toggle('visible', open);
-    if (open) { renderAssets(); renderSaveTab(); }
+    if (open) { renderAssets(); renderSaveTab(); renderProfileTab(); }
   }
 
   /* ---------- Onglets ---------- */
   function switchTab(tab) {
     $$('.dev-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     $$('.dev-page').forEach(p => p.classList.toggle('active', p.id === 'dev-' + tab));
+    if (tab === 'cheats') renderProfileTab();
+  }
+
+  /* ---------- Profil (compte perso cloud vs profil Dev local) ---------- */
+  function renderProfileTab() {
+    const dev = isDevProfile();
+    const info = $('#dev-profile-info');
+    if (info) info.innerHTML = dev
+      ? `Profil actif : <b>🧪 Dev</b> — sauvegarde locale, jamais envoyée au cloud. Les cheats sont actifs.`
+      : `Profil actif : <b>👤 Compte perso</b> — synchronisé avec ton compte Google entre PC et mobile tant que tu es connecté (☁️).`;
+    const bMain = $('#dev-profile-main'), bDev = $('#dev-profile-dev');
+    if (bMain) bMain.classList.toggle('active', !dev);
+    if (bDev) bDev.classList.toggle('active', dev);
+    const hint = $('#dev-cheats-hint'), row = $('#dev-cheats-row');
+    if (hint) hint.hidden = dev;
+    if (row) row.classList.toggle('locked', !dev);
   }
 
   /* ---------- CONSOLE D'IMPORT D'ASSETS ---------- */
@@ -3709,6 +3764,7 @@ const Dev = (() => {
     renderAll();
   }
   function cheat(kind) {
+    if (!isDevProfile()) { toast('Bascule sur le profil Dev pour utiliser les cheats.', 'bad'); return; }
     if (kind === 'dna') { addDna(1e6); }
     else if (kind === 'pb') { addPb(500); }
     else if (kind === 'ap') { state.agePoints += 25; }
@@ -3753,6 +3809,16 @@ const Dev = (() => {
     $('#dev-import-btn').addEventListener('click', doImport);
     $('#dev-reset').addEventListener('click', () => { if (confirm('Effacer toute la progression ? (les assets importés sont conservés)')) { hardReset(); renderAll(); toggle(false); toast('Nouvelle partie','');} });
 
+    // Bascule de profil : compte perso (cloud) <-> Dev (cheats, local uniquement)
+    $('#dev-profile-main') && $('#dev-profile-main').addEventListener('click', () => {
+      if (!isDevProfile()) return;
+      switchProfile('main');
+    });
+    $('#dev-profile-dev') && $('#dev-profile-dev').addEventListener('click', () => {
+      if (isDevProfile()) return;
+      if (confirm('Passer au profil Dev ? Ta partie actuelle sera clonée comme point de départ ; les cheats ne toucheront jamais ton compte perso ni le cloud.')) switchProfile('dev');
+    });
+
     $$('[data-warp]').forEach(b => b.addEventListener('click', () => timeWarp(parseFloat(b.dataset.warp))));
     $$('[data-cheat]').forEach(b => b.addEventListener('click', () => cheat(b.dataset.cheat)));
 
@@ -3775,6 +3841,15 @@ const Dev = (() => {
    ============================================================================ */
 
 async function boot() {
+  // Reflète le profil actif (compte perso vs Dev) dans l'UI dès le boot
+  const devActive = isDevProfile();
+  document.body.classList.toggle('dev-active', devActive);
+  const devBadge = document.getElementById('dev-mode-badge');
+  if (devBadge) {
+    devBadge.hidden = !devActive;
+    devBadge.addEventListener('click', () => { if (confirm('Revenir à ton compte perso ?')) switchProfile('main'); });
+  }
+
   await preloadAssets();
   const had = loadGame();
 
