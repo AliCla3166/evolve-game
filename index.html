@@ -715,6 +715,7 @@ const BOOSTS = [
   { id: 'bloom',    icon: '🌸', name: 'Floraison',           desc: '×3 production pendant 1 h.',                costPb: 70, mult: 3,   durationH: 1 },
   { id: 'harvest',  icon: '📥', name: 'Récolte anticipée',   desc: 'Récolte instantanée de 2 h de production.', costPb: 30, instantHours: 2 },
   { id: 'catalyst', icon: '🧴', name: 'Catalyseur',          desc: '×1.5 production pendant 12 h.',             costPb: 90, mult: 1.5, durationH: 12 },
+  { id: 'fishtoken',icon: '🎣', name: 'Jeton de pêche',      desc: 'Convertit tes 💠 en 1 jeton de pêche. Chaque lancer de canne dans la Mare consomme 1 jeton (quelle que soit la rareté visée). Une journée d\'habitudes bien remplie donne de quoi t\'en offrir une dizaine.', costPb: 10, fishTokens: 1 },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -1266,7 +1267,9 @@ function buyBoost(id) {
   const b = BOOSTS.find(x => x.id === id);
   if (!b || state.pb < b.costPb) return false;
   state.pb -= b.costPb;
-  if (b.instantHours) {
+  if (b.fishTokens) {
+    state.fishTokens = (state.fishTokens || 0) + b.fishTokens;
+  } else if (b.instantHours) {
     const gain = dnaPerSecond() * b.instantHours * 3600;
     addDna(gain);
   } else {
@@ -1819,7 +1822,7 @@ function renderTechs() {
 // ----- Boutique PB -----
 function renderShop() {
   const el = $('#panel-shop');
-  let html = `<div class="shop-intro">Dépense tes 💠 Points Bonus pour accélérer ta production.</div>`;
+  let html = `<div class="shop-intro">Dépense tes 💠 Points Bonus pour accélérer ta production, ou pour acheter des 🎣 jetons de pêche.</div>`;
   for (const b of BOOSTS) {
     const can = state.pb >= b.costPb;
     html += `
@@ -2168,6 +2171,7 @@ function fEnsure() {
   if (!state.fishUp) state.fishUp = {};               // upgradeId -> level
   if (!state.fishing) state.fishing = { catches:0, perfect:0, combo:0, bestCombo:0, dissolved:0, disRarityMax:-1, sold:0, autoAt:0, idleAt:0, frenzyEnd:0 };
   if (!state.creatureBoosts) state.creatureBoosts = 0;
+  if (state.fishTokens == null) state.fishTokens = 0; // jetons de pêche, achetés à la boutique avec des PB
 }
 
 /* ---------- Agrégation des modificateurs ---------- */
@@ -2526,16 +2530,16 @@ const Pond = (() => {
       let best=null,bd=1e9;
       for (const p of particles){ const dx=(p.x-mx),dy=(p.y-my); const d=dx*dx+dy*dy; const rr=(p.r/(W/dpr))*2.2; if(d<rr*rr && d<bd){bd=d;best=p;} }
       if (best) {
-        // Lancer une canne coûte des Points Bonus (💠), gagnés uniquement en validant
-        // ses habitudes réelles (check-in). C'est la seule ressource qui autorise la pêche :
+        // Lancer une canne consomme 1 jeton de pêche (🎣). Les jetons ne s'achètent qu'à la
+        // boutique avec des Points Bonus (💠), eux-mêmes gagnés en validant ses habitudes réelles :
         // ça limite naturellement le nombre de lancers possibles par jour.
-        const cost = RARITIES[best.rar].castPb || (best.rar + 1);
-        if ((state.pb||0) < cost) {
-          setMsg(`Pas assez de 💠 Points Bonus (${cost} requis pour cette rareté) — valide tes habitudes pour pêcher.`);
-          if (typeof toast==='function') toast(`🎣 Pas assez de 💠 Points Bonus (${cost} requis). Valide tes habitudes du jour pour en gagner.`, 'bad');
+        fEnsure();
+        if ((state.fishTokens||0) < 1) {
+          setMsg(`Plus de 🎣 jetons de pêche — achète-en à la Boutique (onglet Boutique) avec tes 💠 Points Bonus.`);
+          if (typeof toast==='function') toast(`🎣 Plus de jetons de pêche. Achète-en à la Boutique avec tes 💠 Points Bonus.`, 'bad');
           return;
         }
-        state.pb -= cost;
+        state.fishTokens -= 1;
         if (typeof renderHud==='function') renderHud();
         startReel(best);
       }
@@ -2796,16 +2800,18 @@ const Fishing = (() => {
     const p = currentPalier();
     const pInfo = p>0 ? PALIERS[Math.min(19,p-1)] : {name:'Amas primordial'};
     const uniq = uniqueCollected();
+    const thr = (typeof ageThreshold==='function') ? ageThreshold() : 1000;
     let html = `
       <div class="mare-hero">
         <button id="open-pond" class="mare-play">🎣 Pêcher dans la Mare</button>
         <div class="mare-stats">
-          <div><b>${fmt(state.agePoints||0)}</b>/100 ⭐ · Palier ${p}/20</div>
+          <div><b>${fmt(state.agePoints||0)}</b>/${fmt(thr)} ⭐ · Palier ${p}/20</div>
           <div class="mare-sub">${pInfo.name} · ${uniq}/${CREATURES.length} créatures · record combo ×${state.fishing.bestCombo}</div>
+          <div class="mare-sub">🎣 <b>${state.fishTokens||0}</b> jeton${(state.fishTokens||0)===1?'':'s'} de pêche disponible${(state.fishTokens||0)===1?'':'s'}</div>
         </div>
         <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/${CREATURES.length})</button>
       </div>
-      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (100 = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge — compte 10 à 60s selon la rareté. Chaque lancer de canne coûte 1 à 6 💠 Points Bonus (selon la rareté visée) : ta seule source de 💠 est le check-in de tes habitudes réelles, donc ta pêche du jour est limitée par tes habitudes validées. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
+      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (${fmt(thr)} = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge — compte 10 à 60s selon la rareté. Chaque lancer de canne consomme 1 🎣 jeton de pêche, achetable à la Boutique avec tes 💠 Points Bonus (onglet Boutique → "Jeton de pêche") : ta seule source de 💠 est le check-in de tes habitudes réelles, donc ta pêche du jour est limitée par tes habitudes validées — une journée bien remplie donne de quoi t'offrir une dizaine de parties. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
       <div class="fup-list">`;
     for (const cat of Object.keys(FISH_CATS)) {
       const ups = FISH_UP.filter(u=>u.cat===cat);
@@ -3544,7 +3550,9 @@ function bindUI() {
     if (!btn) return;
     if (buyBoost(btn.dataset.boost)) { renderShop(); renderHud();
       const b = BOOSTS.find(x=>x.id===btn.dataset.boost);
-      toast(`${b.icon} ${b.name} activé`, 'good');
+      if (b.fishTokens) toast(`${b.icon} +${b.fishTokens} jeton de pêche (total : ${state.fishTokens})`, 'good');
+      else toast(`${b.icon} ${b.name} activé`, 'good');
+      if (window.Fishing) Fishing.renderMare();
     }
   });
 
