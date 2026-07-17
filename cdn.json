@@ -12,7 +12,7 @@
   "palier_12": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_144705_3951a170-0db5-4144-b2cd-5dd9efddcdc7.png",
   "palier_13": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_144707_d66fce2d-c0fc-47a7-a34a-c6564a3befb5.png",
   "gen_flagellum": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145237_298b21bb-91d9-4931-9c3c-98e4abb49dae.png",
-  "icon_dna": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145239_04b8de00-9412-4615-8ea1-77cba0f74b18.png",
+  "icon_dna": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080648_7f41e1ef-0a44-4151-a1f5-56bef28aa74a.png",
   "icon_pb": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145241_04ec1cc5-5e18-4818-98ce-951cd621370f.png",
   "icon_agepoint": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145243_50807203-6216-4e8d-ac60-c45f2f83ac3a.png",
   "icon_seed": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145245_06a3143e-808e-4dfa-a156-f21250938c56.png",
@@ -20,5 +20,14 @@
   "palier_14": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145248_6e7b7049-516f-48d9-be08-3042434e00cc.png",
   "palier_16": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145249_51439491-a1ab-4010-aadc-6baa633d374a.png",
   "palier_17": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145251_a60a4588-a495-4299-991e-e020ecd80238.png",
-  "palier_18": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145253_aea82fa5-5c23-4b82-9a95-4c32c22917e5.png"
+  "palier_18": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260716_145253_aea82fa5-5c23-4b82-9a95-4c32c22917e5.png",
+  "res_signal": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080628_744bdc6e-1674-4616-9d02-69f050516515.png",
+  "res_protein": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080631_c142a2df-6112-4a2c-a600-3095b9f6b3a9.png",
+  "res_lipid": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080632_dc51985f-b435-433b-9e75-6183608750fa.png",
+  "res_sugar": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080638_10236ec9-c7b2-47c3-98da-49b52939ac07.png",
+  "res_nucfactor": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080639_f55b398c-edcd-46da-9c25-f4bebb51167a.png",
+  "res_enzyme": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080641_ecb0b870-59c3-4211-a2a5-2e3cf9bd08d2.png",
+  "res_catalyst": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080643_a9fb6e1a-fe56-4297-a691-7e927542a843.png",
+  "res_atp": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080646_50d3ee60-23f3-4165-8855-54d67d27e899.png",
+  "res_complex": "https://d8j0ntlcm91z4.cloudfront.net/user_36HmXi6t0ccRd9XXPd0L6NOOK9h/hf_20260717_080650_f670f957-9ea1-48a4-b4a9-ca57e8bb0e5b.png"
 }
