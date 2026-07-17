@@ -317,6 +317,13 @@ function injectStyle(){
   .war-lvl.boss{border-color:rgba(255,139,208,.5)}
   .war-launch{background:linear-gradient(90deg,hsla(var(--ah),70%,50%,.9),hsla(var(--ah),80%,60%,.9));border-radius:12px;padding:12px;font-weight:800;width:100%;margin-top:6px;color:#04121a}
   .war-end{position:absolute;inset:0;display:grid;place-items:center;z-index:8;background:rgba(2,8,20,.82);backdrop-filter:blur(3px)}
+  /* Meme piege que #dev-mode-badge : .war-end fixe son propre "display", ce qui bat la regle
+     navigateur [hidden]{display:none} (specificite egale, mais l'auteur gagne sur l'agent
+     utilisateur) : sans cette ligne, ce panneau de fin de combat restait TOUJOURS affiche
+     (vide, tant qu'aucun combat n'est termine) par-dessus toute la modale Guerre, en
+     bloquant tous les clics (niveaux, bouton Lancer, unites...). C'etait la vraie cause du
+     "clique sur Guerre, rien ne se passe". */
+  #war-end[hidden]{display:none}
   .war-end-box{background:var(--card2);border:1px solid var(--line);border-radius:18px;padding:22px;text-align:center;width:min(360px,90vw)}
   .war-end-box h2{font-size:22px;margin-bottom:8px}
   .mg-play{background:linear-gradient(90deg,hsla(var(--ah),70%,50%,.9),hsla(var(--ah),80%,60%,.9));border-radius:10px;padding:9px 12px;font-weight:800;color:#04121a}
