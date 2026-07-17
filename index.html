@@ -79,7 +79,7 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .chip.vital{color:var(--accent2)} .chip.streak{color:var(--gold)} .chip.perfect{color:#fff;background:rgba(196,139,255,.25);border-color:rgba(196,139,255,.5)} .chip.boost{color:var(--pb)}
 
 /* ---------- Layout ---------- */
-#stage{position:fixed;top:58px;bottom:0;left:0;right:0;display:flex}
+#stage{position:fixed;top:58px;bottom:0;left:0;right:0;display:flex;flex-direction:column}
 #diorama-wrap{position:relative;flex:1;min-width:0;overflow:hidden;cursor:pointer}
 #diorama-canvas{position:absolute;inset:0;width:100%;height:100%}
 #diorama-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);
@@ -97,8 +97,24 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 #agebar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--ap),#fff2c2);box-shadow:0 0 12px var(--ap);transition:width .6s}
 #agebar-label{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.03em}
 
-/* ---------- Side ---------- */
-#side{width:min(430px,42vw);display:flex;flex-direction:column;background:linear-gradient(180deg,var(--bg2),var(--bg));border-left:1px solid var(--line)}
+/* ---------- Bottom nav (accès aux menus d'amélioration) ---------- */
+#bottom-nav{position:relative;flex:0 0 auto;display:flex;gap:6px;z-index:56;
+  padding:8px calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+  background:linear-gradient(0deg,rgba(3,12,20,.97),rgba(3,12,20,.8));border-top:1px solid var(--line);backdrop-filter:blur(10px);
+  overflow-x:auto;scrollbar-width:none}
+#bottom-nav::-webkit-scrollbar{display:none}
+.bnav-btn{position:relative;flex:1;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 4px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:10px;font-weight:700;color:var(--muted)}
+.bnav-btn .bnav-ic{font-size:19px}
+.bnav-btn:active{transform:scale(.95)}
+.bnav-btn .bnav-dot{position:absolute;top:4px;right:8px;width:8px;height:8px;border-radius:999px;background:var(--gold);box-shadow:0 0 6px var(--gold)}
+
+/* ---------- Side (panneau plein écran, ouvert via la barre du bas) ---------- */
+#side{position:fixed;inset:58px 0 0 0;z-index:70;display:none;flex-direction:column;background:linear-gradient(180deg,var(--bg2),var(--bg));border-left:none}
+#side.open{display:flex;animation:fade .2s}
+#side-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+#side-head h2{font-size:15px;font-weight:700;color:var(--accent)}
+#side-close{font-size:18px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;width:32px;height:32px}
 #nav{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .nav-btn{flex:1;min-width:70px;font-size:12px;font-weight:600;padding:9px 6px;border-radius:10px;color:var(--muted);border:1px solid transparent}
 .nav-btn.active{color:var(--accent);background:var(--card);border-color:var(--line)}
@@ -312,9 +328,6 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 /* ---------- Responsive / mobile ---------- */
 @media(max-width:820px){
   html,body{overflow:hidden}
-  #stage{flex-direction:column}
-  #diorama-wrap{height:36vh;flex:none;min-height:230px}
-  #side{width:100%;flex:1 1 auto;min-height:0;border-left:none;border-top:1px solid var(--line)}
   .hud-res{gap:6px}
   .res{padding:5px 9px;font-size:13px}
   .res-rate{display:none}
@@ -410,6 +423,42 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 /* ============================ SAUVEGARDE CLOUD ============================ */
 #resources-open{position:relative;width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.85}
 .hud-badge{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 2px var(--bg)}
+
+/* ---------- Bouton voyant "partie de Mare disponible" (haut droite) ---------- */
+#quick-pond-btn{position:relative;width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.35;filter:grayscale(1);transition:opacity .3s,filter .3s}
+#quick-pond-btn.ready{opacity:1;filter:none;animation:pondGlow 1.7s infinite}
+@keyframes pondGlow{0%,100%{box-shadow:0 0 6px rgba(62,230,196,.35);border-color:var(--line)}50%{box-shadow:0 0 20px rgba(62,230,196,.85);border-color:rgba(62,230,196,.7)}}
+.pond-badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#1a1200;font-size:10px;font-weight:800;border-radius:999px;min-width:16px;height:16px;line-height:16px;padding:0 3px}
+
+/* ---------- Ressources de production visibles dans la barre du haut ---------- */
+#hud-extra-res{display:flex;gap:6px;flex-wrap:wrap;cursor:pointer}
+.hud-res-chip{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:12px;font-weight:600}
+.hud-res-chip .hrc-ic{width:16px;height:16px;display:flex;align-items:center;justify-content:center}
+.hud-res-chip .hrc-ic img{width:100%;height:100%;object-fit:contain}
+
+/* ---------- Historique / calendrier des check-ins ---------- */
+#history-open{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.85}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-nav button{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-weight:700}
+.cal-nav .cal-month-label{font-weight:700;color:var(--accent)}
+.cal-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cal-stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+.cal-dow{font-size:10px;color:var(--muted);text-align:center;padding:2px 0}
+.cal-day{aspect-ratio:1;border-radius:9px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;gap:1px}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.cal-day.done{background:rgba(62,230,196,.14);border-color:rgba(62,230,196,.4)}
+.cal-day.perfect{background:rgba(196,139,255,.2);border-color:rgba(196,139,255,.55)}
+.cal-day .cal-num{font-weight:700}
+.cal-day .cal-pb{font-size:9px;color:var(--pb)}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* ---------- Choix de la date dans le check-in ---------- */
+.ci-date{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+#ci-date-select{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--txt);font-weight:600;flex:1}
 #cloud-open{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.6}
 #cloud-open:hover{opacity:1}
 #cloud-open.on{opacity:1;border-color:rgba(62,230,196,.6);box-shadow:0 0 10px rgba(62,230,196,.4)}
@@ -444,8 +493,11 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <div class="res res-seed" title="Graines de mutation — jours parfaits">
       <span class="res-ic">🌱</span><span class="res-val" id="hud-seed">0</span>
     </div>
+    <div id="hud-extra-res" title="Voir le détail des taux de production"></div>
   </div>
+  <button id="quick-pond-btn" title="Jouer à la Mare">🎣<span id="pond-badge" class="pond-badge" hidden>0</span></button>
   <button id="resources-open" title="Ressources de production">🧪<span id="resources-badge" class="hud-badge" hidden></span></button>
+  <button id="history-open" title="Historique & calendrier">📅</button>
   <button id="cloud-open" title="Sauvegarde cloud">☁️</button>
   <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
 </header>
@@ -464,7 +516,17 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <button id="ascend-btn">✨ Évoluer</button>
   </section>
 
+  <nav id="bottom-nav">
+    <button class="bnav-btn" data-panel="generators">🧫<span>Organites</span></button>
+    <button class="bnav-btn" data-panel="fishing">🎣<span>Mare</span></button>
+    <button class="bnav-btn" data-panel="techs">🔬<span>Recherche</span></button>
+    <button class="bnav-btn" data-panel="shop">💠<span>Boutique</span></button>
+    <button class="bnav-btn" data-panel="minigames">🎮<span>Mini-jeux</span></button>
+    <button class="bnav-btn" data-panel="achievements">🏆<span>Succès</span></button>
+  </nav>
+
   <section id="side">
+    <div id="side-head"><h2 id="side-title">🧫 Organites</h2><button id="side-close">✕</button></div>
     <nav id="nav">
       <button class="nav-btn active" data-panel="generators">🧫 Organites</button>
       <button class="nav-btn" data-panel="fishing">🎣 Mare</button>
@@ -519,6 +581,14 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <div class="modal-head"><h2>🌅 Check-in du jour</h2><button id="checkin-close">✕</button></div>
     <div class="modal-note">Chaque habitude validée booste ta production jusqu'au prochain check-in (Pulsation de vie). 5/5 = Jour parfait ✨</div>
     <div id="checkin-body"></div>
+  </div>
+</div>
+
+<div id="history-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2>📅 Historique & calendrier</h2><button id="history-close">✕</button></div>
+    <div class="modal-note">Chaque jour validé alimente ton élan 🔥 : jusqu'à +50% de production permanente si tu ne rates aucun jour.</div>
+    <div id="history-body"></div>
   </div>
 </div>
 
@@ -1161,6 +1231,7 @@ function defaultState() {
     validatedToday: false,
     todayCount: 0,                // nb d'habitudes validées aujourd'hui (pour Pulsation)
     lastCheckinDate: null,        // 'YYYY-MM-DD'
+    history: {},                  // { 'YYYY-MM-DD': { pbGain, count, total, perfect } } — pour le calendrier
     streak: 0,
     calorieGoal: 2200,
 
@@ -1254,6 +1325,16 @@ function todayStr(d = new Date()) {
 function daysBetween(a, b) {
   const da = new Date(a + 'T00:00:00'), db = new Date(b + 'T00:00:00');
   return Math.round((db - da) / 86400000);
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return todayStr(d);
+}
+function addMonths(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setMonth(d.getMonth() + n, 1);
+  return todayStr(d);
 }
 
 /* ============================================================================
@@ -1456,41 +1537,46 @@ function previewCheckinCount() {
   return HABITS.reduce((acc, h) => acc + (habitValidated(h) ? 1 : 0), 0);
 }
 
-// Retourne un objet résumé pour l'animation
-function doCheckin() {
+// Retourne un objet résumé pour l'animation. dateStr optionnel : permet de valider
+// le check-in pour une date passée (ex: la veille, si on l'a oublié).
+function doCheckinForDate(dateStr) {
   const today = todayStr();
-  if (state.lastCheckinDate === today) return { already: true };
+  const targetDate = dateStr || today;
+  if (targetDate > today) return { error: 'future' };
+  if (!state.history) state.history = {};
+  if (state.history[targetDate]) return { already: true };
 
   const pbGain = previewCheckinPb();
   const count = previewCheckinCount();
+  const perfect = count >= HABITS.length;
 
-  // streak
-  if (state.lastCheckinDate) {
-    const gap = daysBetween(state.lastCheckinDate, today);
-    if (gap === 1) state.streak += 1;
-    else if (gap > 1) state.streak = Math.max(0, state.streak - TUNING.streakDropOnMiss * (gap - 1));
-    // gap 0 impossible (déjà géré)
-  } else {
-    state.streak = 1;
+  // Historique persistant (pour le calendrier)
+  state.history[targetDate] = { pbGain, count, total: HABITS.length, perfect };
+
+  // La série (élan) et le boost "jour parfait" ne progressent que si cette date
+  // prolonge chronologiquement le dernier check-in validé (on ne veut pas qu'un
+  // rattrapage tardif d'un vieux jour manqué fausse l'élan en cours).
+  const extendsForward = !state.lastCheckinDate || targetDate > state.lastCheckinDate;
+  if (extendsForward) {
+    if (state.lastCheckinDate) {
+      const gap = daysBetween(state.lastCheckinDate, targetDate);
+      if (gap === 1) state.streak += 1;
+      else if (gap > 1) state.streak = Math.max(0, state.streak - TUNING.streakDropOnMiss * (gap - 1));
+    } else {
+      state.streak = 1;
+    }
+    state.lastCheckinDate = targetDate;
+    if (targetDate === today) { state.todayCount = count; state.validatedToday = true; }
+    if (perfect && targetDate === today) state.perfectBoostEndsAt = Date.now() + TUNING.perfectDayDurationH * 3600 * 1000;
   }
 
   addPb(pbGain);
-  state.todayCount = count;
-  state.validatedToday = true;
-  state.lastCheckinDate = today;
   state.stats.checkinCount += 1;
+  if (perfect) state.stats.perfectDays += 1;
 
-  let seedGain = 0;
-  let perfect = false;
-  if (count >= HABITS.length) {
-    perfect = true;
-    state.stats.perfectDays += 1;
-    state.perfectBoostEndsAt = Date.now() + TUNING.perfectDayDurationH * 3600 * 1000;
-    // Note : la Graine 🌱 de jour parfait a été retirée (plus de seedGain/addSeeds ici).
-  }
-
-  return { already: false, pbGain, count, total: HABITS.length, perfect, seedGain, streak: state.streak };
+  return { already: false, pbGain, count, total: HABITS.length, perfect, seedGain: 0, streak: state.streak, date: targetDate, backfilled: targetDate !== today };
 }
+function doCheckin() { return doCheckinForDate(todayStr()); }
 
 /* ============================================================================
    NUTRIMENT DORÉ (récompense variable, façon golden cookie)
@@ -1662,6 +1748,24 @@ function renderHud() {
   const seenCount = Object.keys(state.resSeen || {}).length;
   const badge = $('#resources-badge');
   if (badge) badge.hidden = !(seenCount > (state.resLastSeenCount || 1));
+
+  // Ressources de production déjà débloquées, visibles directement dans la barre du haut
+  const extra = $('#hud-extra-res');
+  if (extra) {
+    const seen = RESOURCES.filter(r => r.id !== 'dna' && resSeen(r.id));
+    extra.innerHTML = seen.map(r => `<div class="hud-res-chip" title="${r.name} · +${fmt(resPerSecond(r.id))}/s">
+      <span class="hrc-ic">${slotIcon(r.slot, r.icon, 16)}</span>${fmt(resAmount(r.id))}
+    </div>`).join('');
+  }
+
+  // Bouton voyant "partie de Mare disponible"
+  const tokens = state.fishTokens || 0;
+  const pondBtn = $('#quick-pond-btn');
+  if (pondBtn) {
+    pondBtn.classList.toggle('ready', tokens > 0);
+    const pb = $('#pond-badge');
+    if (pb) { pb.hidden = tokens <= 0; pb.textContent = tokens; }
+  }
 }
 
 /* ---------- Panneau Ressources (progressif, simple/détaillé) ---------- */
@@ -2059,10 +2163,28 @@ function renderAchievements() {
 }
 
 // ----- Check-in -----
+let checkinSelectedDate = null; // date choisie dans le sélecteur (défaut : aujourd'hui)
+function checkinDateOptions() {
+  const today = todayStr();
+  const labels = ["Aujourd'hui", 'Hier', 'Avant-hier'];
+  const out = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(today, -i);
+    const already = !!(state.history && state.history[d]);
+    const label = labels[i] || new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+    out.push({ date: d, label: label + (already ? ' (déjà fait)' : ''), already });
+  }
+  return out;
+}
 function renderCheckin() {
   const el = $('#checkin-body');
-  const doneToday = state.lastCheckinDate === todayStr();
+  const opts = checkinDateOptions();
+  if (!checkinSelectedDate || !opts.some(o => o.date === checkinSelectedDate)) checkinSelectedDate = opts[0].date;
   let html = '';
+  html += `<div class="ci-date">
+    <label for="ci-date-select">Journée concernée :</label>
+    <select id="ci-date-select">${opts.map(o => `<option value="${o.date}" ${o.date===checkinSelectedDate?'selected':''} ${o.already?'disabled':''}>${o.label}</option>`).join('')}</select>
+  </div>`;
   html += `<div class="ci-goal">
     <label>Objectif calorique du jour : <input id="ci-goal-input" type="number" min="800" max="6000" step="50" value="${state.calorieGoal}"> kcal</label>
   </div>`;
@@ -2089,20 +2211,74 @@ function renderCheckin() {
         <span class="ci-cap">/ ${h.capItems} max</span>
       </div>`;
     }
-    html += `<div class="ci-habit ${valid?'valid':''}">
+    html += `<div class="ci-habit ${valid?'valid':''}" data-hid="${h.id}">
       <div class="ci-h-head"><span class="ci-h-ic">${h.icon}</span><span class="ci-h-name">${h.name}</span><span class="ci-h-pb">+${pb} 💠</span></div>
       <div class="ci-h-desc">${h.desc}</div>
       ${control}
     </div>`;
   }
+  html += renderCheckinSummary();
+  el.innerHTML = html;
+}
+function renderCheckinSummary() {
   const totalPb = previewCheckinPb();
   const count = previewCheckinCount();
-  html += `<div class="ci-summary">
+  const already = !!(state.history && state.history[checkinSelectedDate]);
+  const isToday = checkinSelectedDate === todayStr();
+  return `<div class="ci-summary">
     <div>Habitudes validées : <b>${count}/${HABITS.length}</b> → Pulsation ×${(1+count*TUNING.vitalPerHabit).toFixed(1)}</div>
     <div>Gain : <b>+${totalPb} 💠</b>${count>=HABITS.length?` · <span class="ci-perfect">Jour parfait ✨ ×${TUNING.perfectDayMult} production ${TUNING.perfectDayDurationH}h</span>`:''}</div>
-    <button id="ci-validate" ${doneToday?'disabled':''}>${doneToday?'Check-in déjà fait aujourd\'hui':'✅ Valider le check-in du jour'}</button>
+    <button id="ci-validate" ${already?'disabled':''}>${already?'Check-in déjà fait pour ce jour':(isToday?'✅ Valider le check-in du jour':'✅ Valider pour cette date')}</button>
   </div>`;
-  el.innerHTML = html;
+}
+
+/* ----- Historique / calendrier ----- */
+let historyCalCursor = todayStr(); // 'YYYY-MM-01' — mois actuellement affiché
+const DOW_LABELS = ['L','M','M','J','V','S','D'];
+function renderHistoryModal() {
+  const el = $('#history-body'); if (!el) return;
+  const today = todayStr();
+  const hist = state.history || {};
+  const m = computeMultipliers();
+  const streakPct = Math.round(Math.min(TUNING.streakCap, state.streak*TUNING.streakPerDay)*100);
+
+  const cursor = new Date(historyCalCursor + 'T00:00:00');
+  const year = cursor.getFullYear(), month = cursor.getMonth();
+  const monthLabel = cursor.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const first = new Date(year, month, 1);
+  const startDow = (first.getDay() + 6) % 7; // lundi = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let cells = '';
+  for (let i = 0; i < startDow; i++) cells += `<div class="cal-day empty"></div>`;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const ds = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    const h = hist[ds];
+    const cls = ['cal-day'];
+    if (ds === today) cls.push('today');
+    if (h) cls.push(h.perfect ? 'perfect' : 'done');
+    cells += `<div class="${cls.join(' ')}" title="${ds}${h?` · +${h.pbGain} 💠 · ${h.count}/${h.total} habitudes`:''}">
+      <div class="cal-num">${day}</div>
+      ${h ? `<div class="cal-pb">+${h.pbGain}💠</div>` : ''}
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="cal-stats">
+      <div class="cal-stat">🔥 Élan actuel : <b>${state.streak}</b> jour${state.streak>1?'s':''} (+${streakPct}% production)</div>
+      <div class="cal-stat">✨ Jours parfaits : <b>${state.stats.perfectDays||0}</b></div>
+      <div class="cal-stat">✅ Check-ins totaux : <b>${state.stats.checkinCount||0}</b></div>
+    </div>
+    <div class="cal-nav">
+      <button id="cal-prev">‹ Précédent</button>
+      <span class="cal-month-label">${monthLabel}</span>
+      <button id="cal-next">Suivant ›</button>
+    </div>
+    <div class="cal-grid">${DOW_LABELS.map(d=>`<div class="cal-dow">${d}</div>`).join('')}${cells}</div>
+    <div class="cal-legend">
+      <span><i style="background:rgba(62,230,196,.4)"></i> Check-in validé</span>
+      <span><i style="background:rgba(196,139,255,.5)"></i> Jour parfait ✨</span>
+    </div>`;
 }
 
 /* ============================================================================
@@ -3703,13 +3879,45 @@ function spawnGolden() {
 }
 
 /* ---------- Interactions ---------- */
+const PANEL_TITLES = {
+  generators: '🧫 Organites', fishing: '🎣 La Mare primordiale', techs: '🔬 Recherche technologique',
+  shop: '💠 Boutique de boosts', minigames: '🎮 Mini-jeux', achievements: '🏆 Succès',
+};
+function openSidePanel(key) {
+  $$('.nav-btn').forEach(x => x.classList.toggle('active', x.dataset.panel === key));
+  $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key + '-wrap'));
+  const title = $('#side-title'); if (title) title.textContent = PANEL_TITLES[key] || '';
+  $('#side').classList.add('open');
+}
 function bindUI() {
-  // Onglets latéraux
-  $$('.nav-btn').forEach(b => b.addEventListener('click', () => {
-    $$('.nav-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + b.dataset.panel + '-wrap'));
-  }));
+  // Grands boutons du bas (point d'entrée des menus d'amélioration)
+  $$('.bnav-btn').forEach(b => b.addEventListener('click', () => openSidePanel(b.dataset.panel)));
+  $('#side-close') && $('#side-close').addEventListener('click', () => $('#side').classList.remove('open'));
+
+  // Onglets internes du panneau (une fois ouvert, pour changer de section sans refermer)
+  $$('.nav-btn').forEach(b => b.addEventListener('click', () => openSidePanel(b.dataset.panel)));
+
+  // Bouton voyant "Mare" (haut droite) : lance directement une partie si des jetons sont disponibles
+  $('#quick-pond-btn') && $('#quick-pond-btn').addEventListener('click', () => {
+    if ((state.fishTokens||0) > 0) { Pond.open(); }
+    else { openSidePanel('fishing'); toast('🎣 Plus de jetons de pêche — achète-en à la Boutique avec tes 💠 Points Bonus.', 'bad'); }
+  });
+
+  // Cliquer sur la barre de ressources en haut ouvre le détail des taux
+  $('.hud-res') && $('.hud-res').addEventListener('click', () => {
+    if (!state.settings) state.settings = {};
+    state.settings.resDetailed = true;
+    renderResourcesPanel();
+    $('#resources-modal').classList.add('visible');
+    state.resLastSeenCount = Object.keys(state.resSeen || {}).length;
+    const badge = $('#resources-badge'); if (badge) badge.hidden = true;
+  });
+
+  // Historique / calendrier
+  $('#history-open') && $('#history-open').addEventListener('click', () => { renderHistoryModal(); $('#history-modal').classList.add('visible'); });
+  $('#history-close') && $('#history-close').addEventListener('click', () => $('#history-modal').classList.remove('visible'));
+  $('#cal-prev') && $('#cal-prev').addEventListener('click', () => { historyCalCursor = addMonths(historyCalCursor, -1); renderHistoryModal(); });
+  $('#cal-next') && $('#cal-next').addEventListener('click', () => { historyCalCursor = addMonths(historyCalCursor, 1); renderHistoryModal(); });
 
   // Achats organites (délégation)
   $('#panel-generators').addEventListener('click', e => {
@@ -3777,6 +3985,7 @@ function bindUI() {
     if (e.target.id === 'ci-cal-input') { v.calories = clampNum(e.target.value, 0, 6000); }
     const range = e.target.closest('[data-habit]');
     if (range) { v[range.dataset.habit] = parseInt(range.value, 10); }
+    if (e.target.id === 'ci-date-select') { checkinSelectedDate = e.target.value; }
     refreshCheckinLight();
   });
   $('#checkin-body').addEventListener('click', e => {
@@ -3799,21 +4008,39 @@ function bindUI() {
 }
 
 function refreshCheckinLight() {
-  const totalPb = previewCheckinPb();
-  const count = previewCheckinCount();
+  // Rafraîchit chaque habitude individuellement (valeur affichée, badge +PB, état validé)
+  // sans reconstruire tout le DOM — indispensable pour que le curseur des pas (et les
+  // autres contrôles) affichent bien leur valeur en temps réel pendant qu'on les bouge.
+  for (const h of HABITS) {
+    const row = document.querySelector(`.ci-habit[data-hid="${h.id}"]`);
+    if (!row) continue;
+    const pb = computeHabitPb(h);
+    const valid = habitValidated(h);
+    row.classList.toggle('valid', valid);
+    const pbEl = row.querySelector('.ci-h-pb'); if (pbEl) pbEl.textContent = `+${pb} 💠`;
+    if (h.type === 'rate') {
+      const valEl = row.querySelector('.ci-val');
+      if (valEl) valEl.textContent = `${fmtInt(state.todayHabits[h.id]||0)} ${h.unit}`;
+    } else if (h.type === 'count') {
+      const valEl = row.querySelector('.ci-counter .ci-val');
+      if (valEl) valEl.textContent = state.todayHabits[h.id]||0;
+    }
+  }
   const sum = $('.ci-summary');
-  if (sum) sum.querySelector('div').innerHTML = `Habitudes validées : <b>${count}/${HABITS.length}</b> → Pulsation ×${(1+count*TUNING.vitalPerHabit).toFixed(1)}`;
+  if (sum) sum.outerHTML = renderCheckinSummary();
 }
 
 function validateCheckin() {
-  const r = doCheckin();
-  if (r.already) { toast('Check-in déjà fait aujourd\'hui.', ''); return; }
+  const r = doCheckinForDate(checkinSelectedDate || todayStr());
+  if (r.already) { toast('Check-in déjà fait pour cette date.', ''); return; }
   Diorama.pulseNow();
   $('#checkin-modal').classList.remove('visible');
-  let msg = `Check-in validé : <b>+${r.pbGain} 💠</b> · ${r.count}/${r.total} habitudes`;
+  const dateLabel = r.backfilled ? ` (pour le ${r.date})` : '';
+  let msg = `Check-in validé${dateLabel} : <b>+${r.pbGain} 💠</b> · ${r.count}/${r.total} habitudes`;
   if (r.perfect) msg += ` · <b>Jour parfait ✨ ×${TUNING.perfectDayMult} ${TUNING.perfectDayDurationH}h</b>`;
   toast(msg, 'good');
-  if (r.streak >= 2) toast(`🔥 Élan : ${r.streak} jours`, 'good');
+  if (!r.backfilled && r.streak >= 2) toast(`🔥 Élan : ${r.streak} jours`, 'good');
+  checkinSelectedDate = null; // sera réinitialisé au prochain rendu (jour courant par défaut)
   checkAchievements();
   renderAll();
   saveGame();
