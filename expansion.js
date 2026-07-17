@@ -291,8 +291,14 @@ function injectStyle(){
   .mus-th{width:100%;aspect-ratio:1;border-radius:8px}
   .mus-nm{font-size:9px;margin-top:3px;line-height:1.1}
   /* WAR modal */
-  #war-modal .modal-box{padding:0;overflow:hidden}
-  #war-wrap{position:relative;width:100vw;height:100vh;max-height:100vh}
+  /* La modale War est nichee dans .modal-box, qui par defaut est plafonnee a 520px/88vh
+     (taille d'un dialogue normal) : sans cette regle plus specifique, les boutons de niveau
+     et "Lancer" (positionnes en bas de #war-wrap, qui se croit sur 100vh) tombaient hors de
+     la zone visible et cliquable de la boite, quel que soit l'ecran (bug "Guerre ne fait rien").
+     100dvh (dynamic viewport height) evite en plus le piege classique mobile ou 100vh inclut
+     la zone cachee sous la barre d'adresse du navigateur. */
+  #war-modal .modal-box{padding:0;overflow:hidden;border-radius:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;height:100dvh;max-height:100dvh}
+  #war-wrap{position:relative;width:100%;height:100%;max-height:100%}
   #war-canvas{display:block;width:100%;height:100%;touch-action:none}
   .war-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;z-index:5;background:linear-gradient(180deg,rgba(2,8,20,.85),transparent)}
   .war-top h3{font-size:14px;font-weight:800}
