@@ -2,7 +2,7 @@
    Met en cache la coquille de l'app pour un lancement instantané et un jeu hors-ligne.
    La progression est dans localStorage (indépendant du SW).
    Bump CACHE à chaque déploiement pour rafraîchir. */
-const CACHE = 'evolve-v8';
+const CACHE = 'evolve-v9';
 const SHELL = [
   './',
   './index.html',
@@ -43,7 +43,22 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Même origine (coquille) : cache d'abord
+  // Code du jeu qui change à chaque correctif (expansion.js, index.html en tant que
+  // sous-ressource) : réseau d'abord, jamais bloqué sur une vieille version en cache tant
+  // qu'il y a du réseau — le cache ne sert que de repli hors-ligne. Sans ça, un correctif
+  // pouvait rester invisible longtemps sur un appareil déjà visité (bug vécu avec "Guerre").
+  if (url.origin === location.origin && /(^|\/)(index\.html|expansion\.js)$/.test(url.pathname)) {
+    e.respondWith(
+      fetch(req).then((r) => {
+        const copy = r.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+        return r;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Même origine (reste de la coquille : icônes, manifest) : cache d'abord
   if (url.origin === location.origin) {
     e.respondWith(
       caches.match(req).then((hit) => hit || fetch(req).then((r) => {

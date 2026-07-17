@@ -4301,7 +4301,24 @@ document.addEventListener('DOMContentLoaded', boot);
 </script>
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        // Force une verification immediate d'une nouvelle version (au lieu d'attendre le
+        // cycle de verification automatique du navigateur, qui peut prendre des heures) :
+        // sans ca, un correctif deploye pouvait rester invisible longtemps sur un appareil
+        // deja visite, meme apres avoir rafraichi la page.
+        reg.update().catch(() => {});
+      }).catch(() => {});
+      // Des qu'une nouvelle version prend le controle, on recharge une seule fois pour
+      // charger les fichiers frais immediatement (au lieu de laisser l'utilisateur bloque
+      // sur l'ancienne version tant qu'il n'a pas ferme/rouvert l'app manuellement).
+      let swRefreshed = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (swRefreshed) return;
+        swRefreshed = true;
+        location.reload();
+      });
+    });
   }
 </script>
 </body>
