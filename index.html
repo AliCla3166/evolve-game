@@ -66,7 +66,12 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
   white-space:nowrap;padding:3px 9px;border-radius:999px;cursor:pointer;animation:devPulse 2.4s infinite}
 @keyframes devPulse{0%,100%{box-shadow:0 0 0 rgba(255,183,77,0)}50%{box-shadow:0 0 10px rgba(255,183,77,.5)}}
 body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
-.hud-res{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+/* Rangee des ressources (ADN, PB, Points d'Age, Graines) : plus dans le header (trop de
+   monde sur une seule ligne de 58px sur mobile -> wrap qui debordait et donnait
+   l'impression d'icones eparpillees en haut de l'ecran). Elle vit maintenant dans
+   #hud-bars, juste sous le header, alignee et centree sur sa propre ligne. */
+.hud-res{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;pointer-events:auto;cursor:pointer}
+.hud-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
 .res{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:6px 12px;font-variant-numeric:tabular-nums}
 .res-ic{font-size:16px}
@@ -207,6 +212,9 @@ body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
 /* ---------- Modales ---------- */
 .modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(2,8,20,.7);backdrop-filter:blur(4px);padding:16px}
 .modal.visible{display:grid;animation:fade .2s}
+/* La confirmation maison peut être déclenchée DEPUIS le menu développeur (#dev-overlay, z-index 150) :
+   sans ce z-index dédié, elle restait invisible derrière lui (bouton "Confirmer" inatteignable). */
+#confirm-modal{z-index:160}
 .modal-box{background:var(--card2);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
   width:min(520px,96vw);max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:18px}
 .modal-box.small{width:min(400px,94vw);text-align:center}
@@ -509,6 +517,16 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <div class="hud-age">Âge 1 · Cellule</div>
     <div id="dev-mode-badge" title="Toucher pour revenir à ton compte perso" hidden>🧪 MODE DEV · toucher pour revenir</div>
   </div>
+  <div class="hud-actions">
+    <button id="quick-pond-btn" title="Jouer à la Mare">🎣<span id="pond-badge" class="pond-badge" hidden>0</span></button>
+    <button id="resources-open" title="Ressources de production">🧪<span id="resources-badge" class="hud-badge" hidden></span></button>
+    <button id="history-open" title="Historique & calendrier">📅</button>
+    <button id="cloud-open" title="Sauvegarde cloud">☁️</button>
+    <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
+  </div>
+</header>
+
+<div id="hud-bars">
   <div class="hud-res">
     <div class="res res-dna" title="ADN — ressource-mère">
       <span class="res-ic">🧬</span><span class="res-val" id="hud-dna">0</span><span class="res-rate" id="hud-dna-rate">0/s</span>
@@ -523,14 +541,6 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <span class="res-ic">🌱</span><span class="res-val" id="hud-seed">0</span>
     </div>
   </div>
-  <button id="quick-pond-btn" title="Jouer à la Mare">🎣<span id="pond-badge" class="pond-badge" hidden>0</span></button>
-  <button id="resources-open" title="Ressources de production">🧪<span id="resources-badge" class="hud-badge" hidden></span></button>
-  <button id="history-open" title="Historique & calendrier">📅</button>
-  <button id="cloud-open" title="Sauvegarde cloud">☁️</button>
-  <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
-</header>
-
-<div id="hud-bars">
   <div id="hud-extra-res" title="Voir le détail des taux de production"></div>
   <div id="hud-chips"></div>
 </div>
@@ -737,6 +747,9 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <div class="dev-btn-row">
         <button id="dev-profile-main">👤 Compte perso (cloud Google)</button>
         <button id="dev-profile-dev">🧪 Profil Dev (test local, jamais synchronisé)</button>
+      </div>
+      <div class="dev-btn-row" style="margin-top:8px">
+        <button id="dev-reset-main" class="btn-danger">🗑 Réinitialiser le compte perso</button>
       </div>
 
       <h3>⏩ Time warp</h3>
@@ -1258,7 +1271,21 @@ function switchProfile(target) {
     localStorage.setItem(DEV_SAVE_KEY, JSON.stringify(state));
   }
   localStorage.setItem(PROFILE_KEY, target);
+  // La page se recharge tout de suite apres (ci-dessous) : sans ce repere, rien ne prouvait
+  // visuellement a l'ecran que le changement avait bien eu lieu ("j'ai l'impression que ca
+  // ne marche pas"). On affiche un toast de confirmation juste apres le rechargement.
+  sessionStorage.setItem('evolve_profile_switch_toast', target);
   location.reload();
+}
+
+// Reinitialise uniquement le compte perso (cloud), quel que soit le profil actif en ce moment.
+// Distinct du "Nouvelle partie" du profil Dev, qui n'efface que la sauvegarde actuellement active.
+function resetMainProfile() {
+  localStorage.removeItem(SAVE_KEY);
+  if (!isDevProfile()) {
+    state = defaultState();
+    saveGame();
+  }
 }
 
 /* ---------- État par défaut ---------- */
@@ -3925,6 +3952,13 @@ const Dev = (() => {
       const ok = await evolveConfirm('Passer au profil Dev ? Ta partie actuelle sera clonée comme point de départ ; les cheats ne toucheront jamais ton compte perso ni le cloud.', { okLabel: 'Passer en Dev' });
       if (ok) switchProfile('dev');
     });
+    $('#dev-reset-main') && $('#dev-reset-main').addEventListener('click', async () => {
+      const ok = await evolveConfirm('Effacer complètement la progression du compte perso ? Cette action est irréversible et agit même si tu es actuellement sur le profil Dev.', { okLabel: 'Effacer le compte perso' });
+      if (!ok) return;
+      resetMainProfile();
+      if (!isDevProfile()) { renderAll(); toggle(false); }
+      toast('Compte perso réinitialisé ✔', 'good');
+    });
 
     $$('[data-warp]').forEach(b => b.addEventListener('click', () => timeWarp(parseFloat(b.dataset.warp))));
     $$('[data-cheat]').forEach(b => b.addEventListener('click', () => cheat(b.dataset.cheat)));
@@ -3994,6 +4028,14 @@ async function boot() {
   renderAll();
   renderCheckin();
   checkAchievements();
+
+  // Confirmation visible d'un changement de profil (voir switchProfile) : le reload qui suit
+  // immediatement le changement ne laissait auparavant aucune trace a l'ecran.
+  const profileSwitchTo = sessionStorage.getItem('evolve_profile_switch_toast');
+  if (profileSwitchTo) {
+    sessionStorage.removeItem('evolve_profile_switch_toast');
+    toast(profileSwitchTo === 'dev' ? '🧪 Profil Dev activé' : '👤 De retour sur ton compte perso ✔', 'good');
+  }
 
   // Boucle principale : modèle "horloge murale" (self-consistant en avant-plan ET après
   // suspension de l'onglet). state.lastTick = instant jusqu'auquel la prod a été créditée.
