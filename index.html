@@ -143,6 +143,9 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .tech-buy{background:rgba(62,230,196,.12);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px;color:var(--accent2);font-family:'JetBrains Mono',monospace}
 .tech-buy[disabled]{opacity:.4;cursor:not-allowed}
 .tech-buy:not([disabled]):hover{background:rgba(62,230,196,.22)}
+.tech-cost-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tech-cost-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:6px;background:rgba(62,230,196,.1)}
+.tech-cost-chip.lack{color:#e0603e;background:rgba(224,96,62,.12)}
 .tech-done{font-size:12px;color:var(--accent);font-weight:700}
 
 /* ---------- Boutique ---------- */
@@ -183,6 +186,30 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .modal-head h2{font-size:18px}
 #checkin-close,#dev-close{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:16px}
+
+/* ---------- Panneau Ressources ---------- */
+.res-view-toggle{display:flex;gap:4px;background:var(--bg2);border-radius:8px;padding:3px;margin:0 8px}
+.res-view-btn{padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.res-view-btn.active{background:var(--accent);color:#04211c}
+.res-simple-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px}
+.res-chip{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.res-chip-ic{font-size:22px}
+.res-chip-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px}
+.res-chip-name{font-size:10px;color:var(--muted);line-height:1.2}
+.res-detail-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.res-detail-ic{font-size:22px;flex-shrink:0}
+.res-detail-main{flex:1;min-width:0}
+.res-detail-name{font-weight:700;font-size:13px}
+.res-detail-desc{font-size:11px;color:var(--muted);margin-top:1px}
+.res-detail-nums{text-align:right;flex-shrink:0}
+.res-detail-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:14px}
+.res-detail-rate{font-size:11px;color:var(--accent)}
+.res-empty-hint{font-size:12px;color:var(--muted);text-align:center;padding:20px 10px;line-height:1.5}
+@media(max-width:480px){
+  .res-simple-grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+  .modal-head h2{font-size:15px}
+  .res-view-btn{padding:4px 8px;font-size:11px}
+}
 .modal-note{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
 #offline-text{margin:14px 0 18px;line-height:1.6;font-size:15px}
 .btn-primary{background:linear-gradient(135deg,var(--accent),#2bbfa0);color:#04211c;font-weight:800;padding:11px 22px;border-radius:12px}
@@ -381,6 +408,8 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 @media(max-width:820px){ #ascend-btn{bottom:44px;font-size:13px;padding:10px 16px} }
 
 /* ============================ SAUVEGARDE CLOUD ============================ */
+#resources-open{position:relative;width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.85}
+.hud-badge{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--accent2);box-shadow:0 0 0 2px var(--bg)}
 #cloud-open{width:38px;height:38px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px;opacity:.6}
 #cloud-open:hover{opacity:1}
 #cloud-open.on{opacity:1;border-color:rgba(62,230,196,.6);box-shadow:0 0 10px rgba(62,230,196,.4)}
@@ -389,7 +418,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 .cloud-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .cloud-btns button{padding:11px;border-radius:10px;font-weight:700;border:1px solid var(--line);background:var(--card)}
 .cloud-btns .btn-primary{border:none}
-@media(max-width:820px){ #cloud-open{width:34px;height:34px} }
+@media(max-width:820px){ #cloud-open{width:34px;height:34px} #resources-open{width:34px;height:34px} }
 
 </style>
 </head>
@@ -416,6 +445,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
       <span class="res-ic">🌱</span><span class="res-val" id="hud-seed">0</span>
     </div>
   </div>
+  <button id="resources-open" title="Ressources de production">🧪<span id="resources-badge" class="hud-badge" hidden></span></button>
   <button id="cloud-open" title="Sauvegarde cloud">☁️</button>
   <button id="dev-open" title="Menu développeur (tape 'dev')">⚙︎</button>
 </header>
@@ -516,6 +546,20 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   </div>
 </div>
 
+<div id="resources-modal" class="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>🧪 Ressources</h2>
+      <div class="res-view-toggle">
+        <button id="res-view-simple" class="res-view-btn active">Simple</button>
+        <button id="res-view-detail" class="res-view-btn">Détaillé</button>
+      </div>
+      <button id="resources-close">✕</button>
+    </div>
+    <div id="resources-body"></div>
+  </div>
+</div>
+
 <div id="ascend-modal" class="modal">
   <div class="modal-box small">
     <div class="modal-head"><h2>🌌 Ascension</h2></div>
@@ -557,6 +601,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
           <option value="background">Fonds</option>
           <option value="creature">Cellules</option>
           <option value="icon">Icônes</option>
+          <option value="resource">Ressources</option>
         </select>
         <select id="dev-asset-status">
           <option value="all">Tous statuts</option>
@@ -674,30 +719,87 @@ const HABITS = [
    --------------------------------------------------------------------------- */
 const GENERATORS = [
   { id: 'replicase',    icon: '🧫', name: 'Réplicase',         desc: "Brin d'ADN auto-réplicant.",         baseCost: 15,     costMult: 1.15, baseRate: 0.2 },
-  { id: 'ribosome',     icon: '⚙️', name: 'Ribosome',          desc: 'Assemble les protéines.',            baseCost: 100,    costMult: 1.15, baseRate: 1,   unlockTech: 'M3' },
-  { id: 'mitochondria', icon: '🔋', name: 'Mitochondrie',      desc: "Centrale d'énergie (×3 rendement).", baseCost: 1100,   costMult: 1.15, baseRate: 8,   unlockTech: 'M4' },
-  { id: 'lysosome',     icon: '🧪', name: 'Lysosome',          desc: 'Recycle la matière en ADN.',         baseCost: 12000,  costMult: 1.15, baseRate: 47 },
-  { id: 'golgi',        icon: '📦', name: 'Appareil de Golgi', desc: 'Trie et distribue les brins.',       baseCost: 130000, costMult: 1.15, baseRate: 260 },
-  { id: 'nucleus',      icon: '🧬', name: 'Noyau',             desc: "Cœur du code génétique.",            baseCost: 1.4e6,  costMult: 1.15, baseRate: 1400 },
-  { id: 'chloroplast',  icon: '🌿', name: 'Chloroplaste',      desc: 'Capte la lumière primordiale.',      baseCost: 2.0e7,  costMult: 1.15, baseRate: 7800 },
-  { id: 'flagellum',    icon: '🦠', name: 'Colonie flagellée', desc: 'Un super-organisme mobile.',         baseCost: 3.3e8,  costMult: 1.15, baseRate: 44000 },
+  { id: 'ribosome',     icon: '⚙️', name: 'Ribosome',          desc: 'Assemble les protéines.',            baseCost: 100,    costMult: 1.15, baseRate: 1,   unlockTech: 'M3', resId: 'protein',   resRate: 0.3 },
+  { id: 'mitochondria', icon: '🔋', name: 'Mitochondrie',      desc: "Centrale d'énergie (×3 rendement).", baseCost: 1100,   costMult: 1.15, baseRate: 8,   unlockTech: 'M4', resId: 'atp',       resRate: 2 },
+  { id: 'lysosome',     icon: '🧪', name: 'Lysosome',          desc: 'Recycle la matière en ADN.',         baseCost: 12000,  costMult: 1.15, baseRate: 47,                    resId: 'enzyme',    resRate: 10 },
+  { id: 'golgi',        icon: '📦', name: 'Appareil de Golgi', desc: 'Trie et distribue les brins.',       baseCost: 130000, costMult: 1.15, baseRate: 260,                   resId: 'lipid',     resRate: 55 },
+  { id: 'nucleus',      icon: '🧬', name: 'Noyau',             desc: "Cœur du code génétique.",            baseCost: 1.4e6,  costMult: 1.15, baseRate: 1400,                  resId: 'nucfactor', resRate: 280 },
+  { id: 'chloroplast',  icon: '🌿', name: 'Chloroplaste',      desc: 'Capte la lumière primordiale.',      baseCost: 2.0e7,  costMult: 1.15, baseRate: 7800,                  resId: 'sugar',     resRate: 1500 },
+  { id: 'flagellum',    icon: '🦠', name: 'Colonie flagellée', desc: 'Un super-organisme mobile.',         baseCost: 3.3e8,  costMult: 1.15, baseRate: 44000,                 resId: 'signal',    resRate: 8000 },
 ];
+
+/* ---------------------------------------------------------------------------
+   RESSOURCES (10) — ADN + 7 ressources secondaires (produites en parallèle par
+   les organites) + 2 ressources raffinées (débloquées par des recherches et
+   nécessitant de combiner plusieurs ressources de base). N'apparaissent dans
+   l'interface qu'une fois gagnées au moins une fois (state.resSeen).
+   --------------------------------------------------------------------------- */
+const RESOURCES = [
+  { id: 'dna',       name: 'ADN',                 icon: '🧬', slot: 'icon_dna',       tier: 1, desc: "La ressource-mère, produite par tous les organites." },
+  { id: 'protein',   name: 'Protéines',           icon: '🧫', slot: 'res_protein',    tier: 2, desc: 'Assemblées par le Ribosome.' },
+  { id: 'atp',       name: 'ATP',                 icon: '⚡', slot: 'res_atp',        tier: 3, desc: "Énergie libérée par la Mitochondrie." },
+  { id: 'enzyme',    name: 'Enzymes',             icon: '🧪', slot: 'res_enzyme',     tier: 4, desc: 'Catalyseurs recyclés par le Lysosome.' },
+  { id: 'lipid',     name: 'Lipides',             icon: '💧', slot: 'res_lipid',      tier: 5, desc: "Membranes triées par l'Appareil de Golgi." },
+  { id: 'nucfactor', name: 'Facteurs nucléaires', icon: '🧿', slot: 'res_nucfactor',  tier: 6, desc: 'Facteurs de transcription issus du Noyau.' },
+  { id: 'sugar',     name: 'Glucides',            icon: '☀️', slot: 'res_sugar',      tier: 7, desc: 'Sucres captés par le Chloroplaste.' },
+  { id: 'signal',    name: 'Signaux moteurs',     icon: '🌀', slot: 'res_signal',     tier: 8, desc: 'Signaux de motilité de la Colonie flagellée.' },
+  { id: 'complex',   name: 'Complexe protéique',  icon: '💎', slot: 'res_complex',    tier: 9, desc: 'Structure quaternaire raffinée (recherche requise).' },
+  { id: 'catalyst',  name: 'Catalyseur évolutif', icon: '✨', slot: 'res_catalyst',   tier: 10, desc: 'Ressource ultime, débloquée par la recherche finale.' },
+];
+function resDef(id) { return RESOURCES.find(r => r.id === id); }
+function resAmount(id) { return id === 'dna' ? (state.dna || 0) : ((state.res && state.res[id]) || 0); }
+function resSeen(id) { return id === 'dna' ? true : !!(state.resSeen && state.resSeen[id]); }
+function markResSeen(id) { if (!state.resSeen) state.resSeen = {}; if (!state.resSeen[id]) state.resSeen[id] = true; }
+function addRes(id, amount) {
+  if (!amount) return;
+  if (id === 'dna') { addDna(amount); return; }
+  if (!state.res) state.res = {};
+  state.res[id] = (state.res[id] || 0) + amount;
+  if (state.res[id] > 0) markResSeen(id);
+}
+// Débit vrai/faux : vérifie et déduit un ensemble de coûts {resId: montant}
+function canAfford(costs) {
+  return Object.entries(costs || {}).every(([id, amt]) => resAmount(id) >= amt);
+}
+function spendCosts(costs) {
+  if (!canAfford(costs)) return false;
+  for (const [id, amt] of Object.entries(costs || {})) {
+    if (id === 'dna') state.dna -= amt; else state.res[id] = (state.res[id] || 0) - amt;
+  }
+  return true;
+}
+// Production/s d'une ressource secondaire (organites) + flat des recherches (complex/catalyst)
+function resPerSecond(id) {
+  if (id === 'dna') return dnaPerSecond();
+  let rate = 0;
+  for (const g of GENERATORS) {
+    if (g.resId === id) rate += (state.generators[g.id] || 0) * g.resRate;
+  }
+  if (id === 'complex' && state.techs['M10']) rate += 0.01 * totalGenerators(state);
+  if (id === 'catalyst' && state.techs['M11']) rate += 0.004 * totalGenerators(state);
+  const m = computeMultipliers();
+  return rate * m.globalMult;
+}
 
 /* ---------------------------------------------------------------------------
    ARBRE TECHNOLOGIQUE — Âge 1 (4 branches)
    --------------------------------------------------------------------------- */
 const TECHS = [
-  { id: 'M1', branch: 'metabolisme', name: 'Réplication basique', desc: 'Production idle de base +1 ADN/s.', cost: 25,  effect: { type: 'flatIdle', value: 1 } },
-  { id: 'M2', branch: 'metabolisme', name: 'Membrane sélective',  desc: '+25% production idle.',            cost: 60,  effect: { type: 'globalMult', value: 1.25 }, req: ['M1'] },
-  { id: 'M3', branch: 'metabolisme', name: 'Ribosome primitif',   desc: 'Débloque le générateur Ribosome.', cost: 120, effect: { type: 'unlockGen', value: 'ribosome' }, req: ['M2'] },
-  { id: 'M4', branch: 'metabolisme', name: 'Mitochondrie ancestrale', desc: 'Débloque la Mitochondrie (×3 rendement).', cost: 300, effect: { type: 'unlockGen', value: 'mitochondria' }, req: ['M3'] },
-  { id: 'M5', branch: 'metabolisme', name: 'Enzymes de synthèse', desc: '×2 production globale.',            cost: 750, effect: { type: 'globalMult', value: 2 }, req: ['M4'] },
-  { id: 'M6', branch: 'metabolisme', name: 'Polymérase rapide',   desc: '+10% production / niveau.',         cost: 200, costMult: 1.6, repeatable: true, maxLevel: 50, effect: { type: 'globalMultPerLevel', value: 1.10 }, req: ['M4'] },
-  { id: 'M7', branch: 'metabolisme', name: "Réparation de l'ADN", desc: '+50% production hors-ligne.',       cost: 500, effect: { type: 'offlineMult', value: 1.5 }, req: ['M5'] },
+  { id: 'M1', branch: 'metabolisme', name: 'Réplication basique', desc: 'Production idle de base +1 ADN/s.', costs: { dna: 25 },  effect: { type: 'flatIdle', value: 1 } },
+  { id: 'M2', branch: 'metabolisme', name: 'Membrane sélective',  desc: '+25% production idle.',            costs: { dna: 60 },  effect: { type: 'globalMult', value: 1.25 }, req: ['M1'] },
+  { id: 'M3', branch: 'metabolisme', name: 'Ribosome primitif',   desc: 'Débloque le générateur Ribosome.', costs: { dna: 120 }, effect: { type: 'unlockGen', value: 'ribosome' }, req: ['M2'] },
+  { id: 'M4', branch: 'metabolisme', name: 'Mitochondrie ancestrale', desc: 'Débloque la Mitochondrie (×3 rendement). Nécessite tes premières Protéines.', costs: { dna: 300, protein: 40 }, effect: { type: 'unlockGen', value: 'mitochondria' }, req: ['M3'] },
+  { id: 'M5', branch: 'metabolisme', name: 'Enzymes de synthèse', desc: '×2 production globale. Combine Protéines et ATP.', costs: { dna: 750, protein: 80, atp: 40 }, effect: { type: 'globalMult', value: 2 }, req: ['M4'] },
+  { id: 'M6', branch: 'metabolisme', name: 'Polymérase rapide',   desc: '+10% production / niveau.',         costs: { dna: 200, protein: 30 }, costMult: 1.6, repeatable: true, maxLevel: 50, effect: { type: 'globalMultPerLevel', value: 1.10 }, req: ['M4'] },
+  { id: 'M7', branch: 'metabolisme', name: "Réparation de l'ADN", desc: "+50% production hors-ligne. Nécessite de l'ATP et des Enzymes.", costs: { dna: 500, atp: 60, enzyme: 30 }, effect: { type: 'offlineMult', value: 1.5 }, req: ['M5'] },
+  { id: 'M8', branch: 'metabolisme', name: 'Membrane spécialisée', desc: '+30% production globale. Combine Enzymes et Lipides.', costs: { dna: 5000, enzyme: 100, lipid: 50 }, effect: { type: 'globalMult', value: 1.3 }, req: ['M7'] },
+  { id: 'M9', branch: 'metabolisme', name: 'Réseau de signalisation', desc: '+50% production globale. Combine Facteurs nucléaires, Glucides et Signaux moteurs.', costs: { dna: 50000, nucfactor: 80, sugar: 60, signal: 40 }, effect: { type: 'globalMult', value: 1.5 }, req: ['M8'] },
+  { id: 'M10', branch: 'metabolisme', name: 'Synthèse protéique avancée', desc: 'Débloque la production passive de Complexe protéique 💎. Combine 4 ressources de base.', costs: { dna: 100000, protein: 200, atp: 150, enzyme: 100, lipid: 80 }, effect: { type: 'unlockResource', value: 'complex' }, req: ['M9'] },
+  { id: 'M11', branch: 'metabolisme', name: 'Catalyse évolutive',  desc: 'Débloque le Catalyseur évolutif ✨ et +50% production globale permanente. La recherche la plus exigeante — 5 ressources combinées, dont le rare Complexe protéique.', costs: { dna: 500000, nucfactor: 200, sugar: 200, signal: 200, complex: 50 }, effect: { type: 'unlockResourceAndMult', value: 'catalyst', mult: 1.5 }, req: ['M10'] },
 
-  { id: 'G1', branch: 'proliferation', name: 'Membrane de front', desc: 'Débloque le mini-jeu Guerre primordiale.', cost: 400, effect: { type: 'unlockMinigame', value: 'war' }, req: ['M3'] },
-  { id: 'C1', branch: 'code',          name: 'Premier brin',      desc: 'Débloque le mini-jeu Code génétique.',     cost: 400, effect: { type: 'unlockMinigame', value: 'code' }, req: ['M3'] },
-  { id: 'I1', branch: 'immunite',      name: 'Réponse primitive', desc: 'Débloque le mini-jeu Immunité.',           cost: 400, effect: { type: 'unlockMinigame', value: 'immunity' }, req: ['M3'] },
+  { id: 'G1', branch: 'proliferation', name: 'Membrane de front', desc: 'Débloque le mini-jeu Guerre primordiale.', costs: { dna: 400 }, effect: { type: 'unlockMinigame', value: 'war' }, req: ['M3'] },
+  { id: 'C1', branch: 'code',          name: 'Premier brin',      desc: 'Débloque le mini-jeu Code génétique.',     costs: { dna: 400 }, effect: { type: 'unlockMinigame', value: 'code' }, req: ['M3'] },
+  { id: 'I1', branch: 'immunite',      name: 'Réponse primitive', desc: 'Débloque le mini-jeu Immunité.',           costs: { dna: 400 }, effect: { type: 'unlockMinigame', value: 'immunity' }, req: ['M3'] },
 ];
 
 const TECH_BRANCHES = {
@@ -862,6 +964,26 @@ const ASSET_MANIFEST = [
     prompt: "Game icon, a glowing mutating seed of light, teal-green with sparks, transparent background, crisp, centered", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
   { id: 'icon_golden', cat: 'icon', label: 'Icône — Nutriment doré', represents: 'Le bonus doré cliquable (récompense variable).', w: 256, h: 256, format: 'PNG-32', slot: 'icon_golden',
     prompt: "Glowing golden-amber nutrient orb pulsing with warm light, floating, transparent background, contrast against teal world, crisp, centered, tempting collectible", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+
+  // ---------- ICÔNES RESSOURCES SECONDAIRES (système à 10 ressources) ----------
+  { id: 'res_protein', cat: 'resource', label: 'Icône — Protéines', represents: 'Ressource Protéines (produite par le Ribosome).', w: 128, h: 128, format: 'PNG-32', slot: 'res_protein',
+    prompt: "Game resource icon, a small cluster of folded glowing protein chains coiling into a compact organic knot, soft teal-cyan bioluminescence, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_atp', cat: 'resource', label: 'Icône — ATP', represents: "Ressource ATP (énergie de la Mitochondrie).", w: 128, h: 128, format: 'PNG-32', slot: 'res_atp',
+    prompt: "Game resource icon, a stylized ATP molecule releasing a small bright energy spark, electric cyan-white glow on dark, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_enzyme', cat: 'resource', label: 'Icône — Enzymes', represents: 'Ressource Enzymes (recyclées par le Lysosome).', w: 128, h: 128, format: 'PNG-32', slot: 'res_enzyme',
+    prompt: "Game resource icon, a glowing teal enzyme molecule shaped like an open catalytic pincer/key, subtle acidic green-teal glow, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_lipid', cat: 'resource', label: 'Icône — Lipides', represents: "Ressource Lipides (triés par l'Appareil de Golgi).", w: 128, h: 128, format: 'PNG-32', slot: 'res_lipid',
+    prompt: "Game resource icon, a translucent glowing lipid droplet with a soft membrane layer swirl inside, pale blue-teal glow, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_nucfactor', cat: 'resource', label: 'Icône — Facteurs nucléaires', represents: 'Ressource Facteurs nucléaires (issus du Noyau).', w: 128, h: 128, format: 'PNG-32', slot: 'res_nucfactor',
+    prompt: "Game resource icon, a small glowing eye-like nuclear transcription factor orb with fine radiating filaments, deep violet-teal glow, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_sugar', cat: 'resource', label: 'Icône — Glucides', represents: 'Ressource Glucides (captés par le Chloroplaste).', w: 128, h: 128, format: 'PNG-32', slot: 'res_sugar',
+    prompt: "Game resource icon, a glowing hexagonal sugar crystal cluster catching warm sunlight, golden-amber glow against teal, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_signal', cat: 'resource', label: 'Icône — Signaux moteurs', represents: 'Ressource Signaux moteurs (Colonie flagellée).', w: 128, h: 128, format: 'PNG-32', slot: 'res_signal',
+    prompt: "Game resource icon, a swirling spiral of glowing motor-signal energy resembling a small flagellum whirl, bright cyan-teal motion trail, transparent background, crisp, centered, semi-flat stylized icon", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_complex', cat: 'resource', label: 'Icône — Complexe protéique', represents: 'Ressource Complexe protéique (recherche avancée).', w: 128, h: 128, format: 'PNG-32', slot: 'res_complex',
+    prompt: "Game resource icon, a faceted glowing crystalline gem made of interlocked protein subunits, prismatic teal-white glow, transparent background, crisp, centered, semi-flat stylized icon, rare/precious feel", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
+  { id: 'res_catalyst', cat: 'resource', label: 'Icône — Catalyseur évolutif', represents: 'Ressource Catalyseur évolutif (ressource ultime).', w: 128, h: 128, format: 'PNG-32', slot: 'res_catalyst',
+    prompt: "Game resource icon, a radiant evolutionary catalyst spark, a small star-like burst of white-gold light wrapped in teal energy tendrils, transparent background, crisp, centered, semi-flat stylized icon, ultimate/legendary feel", refs: ['ref_da_1','ref_da_2','ref_da_3'] },
 ];
 
 /* ---------- Refs de cohérence (les 3 images maîtresses de la DA) ---------- */
@@ -1019,6 +1141,9 @@ function defaultState() {
     pb: 0,                    // Points Bonus (💠)
     agePoints: 0,             // Points d'Âge (⭐) — méta / persistant
     seeds: 0,                 // Graines de mutation (🌱) — méta rare
+    res: {},                  // ressources secondaires (protein, atp, enzyme, lipid, nucfactor, sugar, signal, complex, catalyst)
+    resSeen: { dna: true },   // ressources déjà obtenues au moins une fois (affichage progressif du HUD)
+    resLastSeenCount: 1,      // pour la pastille "nouvelle ressource" sur le bouton dédié
 
     ageId: 1,
 
@@ -1149,6 +1274,7 @@ function computeMultipliers() {
     else if (e.type === 'globalMult') globalMult *= e.value;
     else if (e.type === 'globalMultPerLevel') globalMult *= Math.pow(e.value, lvl);
     else if (e.type === 'offlineMult') offlineMult *= e.value;
+    else if (e.type === 'unlockResourceAndMult') globalMult *= (e.mult || 1);
   }
 
   // Succès : +2% chacun
@@ -1211,12 +1337,12 @@ function maxAffordable(g) {
   return { qty, total };
 }
 function techCost(t) {
-  if (t.repeatable) {
-    const lvl = state.techs[t.id] || 0;
-    return Math.ceil(t.cost * Math.pow(t.costMult || 1.5, lvl));
-  }
-  return t.cost;
+  const mult = t.repeatable ? Math.pow(t.costMult || 1.5, state.techs[t.id] || 0) : 1;
+  const out = {};
+  for (const [id, amt] of Object.entries(t.costs || {})) out[id] = Math.ceil(amt * mult);
+  return out;
 }
+function techCostDna(t) { return techCost(t).dna || 0; } // rétro-compat affichage
 
 /* ---------- Achats ---------- */
 function buyGenerator(id, qty = 1) {
@@ -1245,12 +1371,12 @@ function canBuyTech(t) {
   if (!t.repeatable && state.techs[t.id]) return false;
   if (t.repeatable && (state.techs[t.id] || 0) >= (t.maxLevel || 999)) return false;
   if (t.req && !t.req.every(r => state.techs[r])) return false;
-  return state.dna >= techCost(t);
+  return canAfford(techCost(t));
 }
 function buyTech(id) {
   const t = TECHS.find(x => x.id === id);
   if (!t || !canBuyTech(t)) return false;
-  state.dna -= techCost(t);
+  if (!spendCosts(techCost(t))) return false;
   state.techs[id] = (state.techs[id] || 0) + 1;
   applyTechEffect(t);
   return true;
@@ -1259,7 +1385,9 @@ function applyTechEffect(t) {
   const e = t.effect;
   if (e.type === 'unlockGen') state.unlockedGens[e.value] = true;
   else if (e.type === 'unlockMinigame') state.unlockedMinigames[e.value] = true;
-  // les multiplicateurs sont recalculés à la volée
+  else if (e.type === 'unlockResource') markResSeen(e.value);
+  else if (e.type === 'unlockResourceAndMult') markResSeen(e.value);
+  // les multiplicateurs (globalMult, unlockResourceAndMult.mult, etc.) sont recalculés à la volée par computeMultipliers()
 }
 
 /* ---------- Boosts PB ---------- */
@@ -1391,6 +1519,12 @@ function catchGolden() {
 function tick(dtSeconds) {
   const rate = dnaPerSecond();
   addDna(rate * dtSeconds);
+  // ressources secondaires (organites) + ressources raffinées (recherches M10/M11)
+  for (const r of RESOURCES) {
+    if (r.id === 'dna') continue;
+    const rr = resPerSecond(r.id);
+    if (rr > 0) addRes(r.id, rr * dtSeconds);
+  }
   // purge boosts expirés
   const now = Date.now();
   state.boosts = state.boosts.filter(b => b.endsAt > now);
@@ -1411,6 +1545,11 @@ function applyOffline() {
   const rate = dnaPerSecond() * m.offlineMult;
   const gain = rate * capped;
   addDna(gain);
+  for (const r of RESOURCES) {
+    if (r.id === 'dna') continue;
+    const rr = resPerSecond(r.id) * m.offlineMult;
+    if (rr > 0) addRes(r.id, rr * capped);
+  }
   state.lastTick = now;
   return { gain, seconds: capped, cappedAt: capH, full: elapsed };
 }
@@ -1517,6 +1656,43 @@ function renderHud() {
     }
   }
   $('#hud-chips').innerHTML = chips.join('');
+
+  // pastille "nouvelle ressource" sur le bouton Ressources
+  const seenCount = Object.keys(state.resSeen || {}).length;
+  const badge = $('#resources-badge');
+  if (badge) badge.hidden = !(seenCount > (state.resLastSeenCount || 1));
+}
+
+/* ---------- Panneau Ressources (progressif, simple/détaillé) ---------- */
+function renderResourcesPanel() {
+  const el = $('#resources-body'); if (!el) return;
+  const seen = RESOURCES.filter(r => resSeen(r.id));
+  if (seen.length <= 1) {
+    el.innerHTML = `
+      <div class="res-simple-grid">
+        <div class="res-chip" title="ADN"><div class="res-chip-ic">${slotIcon('icon_dna','🧬',26)}</div><div class="res-chip-val">${fmt(resAmount('dna'))}</div><div class="res-chip-name">ADN</div></div>
+      </div>
+      <div class="res-empty-hint">Débloque de nouveaux organites (Ribosome, Mitochondrie…) et recherches pour révéler jusqu'à 10 ressources différentes ici.</div>`;
+    return;
+  }
+  const detailed = !!(state.settings && state.settings.resDetailed);
+  if (detailed) {
+    el.innerHTML = seen.map(r => {
+      const amt = resAmount(r.id), rate = resPerSecond(r.id);
+      return `<div class="res-detail-row">
+        <div class="res-detail-ic">${slotIcon(r.slot, r.icon, 30)}</div>
+        <div class="res-detail-main"><div class="res-detail-name">${r.name}</div><div class="res-detail-desc">${r.desc}</div></div>
+        <div class="res-detail-nums"><div class="res-detail-val">${fmt(amt)}</div><div class="res-detail-rate">+${fmt(rate)}/s</div></div>
+      </div>`;
+    }).join('');
+  } else {
+    el.innerHTML = `<div class="res-simple-grid">${seen.map(r => `
+      <div class="res-chip" title="${r.name}">
+        <div class="res-chip-ic">${slotIcon(r.slot, r.icon, 26)}</div>
+        <div class="res-chip-val">${fmt(resAmount(r.id))}</div>
+        <div class="res-chip-name">${r.name}</div>
+      </div>`).join('')}</div>`;
+  }
 }
 
 /* ============================================================================
@@ -1768,13 +1944,15 @@ function renderGenerators() {
     const cost = genCost(g);
     const can = state.dna >= cost;
     const rate = g.baseRate;
+    const rd = g.resId ? resDef(g.resId) : null;
+    const secLine = rd ? ` + ${fmt(g.resRate)} ${rd.icon} ${rd.name}/s chacun · total ${fmt(owned*g.resRate)}/s` : '';
     html += `
       <div class="gen-row ${can ? 'affordable' : ''}" data-gen="${g.id}">
         <div class="gen-ic">${slotIcon('gen_' + g.id, g.icon, 40)}</div>
         <div class="gen-main">
           <div class="gen-name">${g.name} <span class="gen-count">${owned}</span></div>
           <div class="gen-desc">${g.desc}</div>
-          <div class="gen-rate">+${fmt(rate)} ADN/s chacun · total ${fmt(owned*rate)}/s</div>
+          <div class="gen-rate">+${fmt(rate)} 🧬 ADN/s chacun · total ${fmt(owned*rate)}/s${secLine}</div>
         </div>
         <button class="gen-buy" data-buy="${g.id}" ${can?'':'disabled'}>
           <span class="buy-label">Acheter</span>
@@ -1803,6 +1981,10 @@ function renderTechs() {
       const maxed = t.repeatable && (state.techs[t.id]||0) >= (t.maxLevel||999);
       const doneClass = (owned && !t.repeatable) ? 'owned' : (can ? 'affordable' : 'muted');
       const lvlTxt = t.repeatable ? ` <span class="tech-lvl">Niv. ${state.techs[t.id]||0}</span>` : '';
+      const costBadges = Object.entries(cost).map(([rid, amt]) => {
+        const rd = resDef(rid); const have = resAmount(rid) >= amt;
+        return `<span class="tech-cost-chip ${have?'':'lack'}">${rd?rd.icon:'🧬'} ${fmt(amt)}</span>`;
+      }).join('');
       html += `
         <div class="tech-card ${doneClass}" data-tech="${t.id}">
           <div class="tech-name">${t.name}${lvlTxt}</div>
@@ -1810,7 +1992,7 @@ function renderTechs() {
           <div class="tech-foot">
             ${(owned && !t.repeatable) ? '<span class="tech-done">✔ Acquis</span>'
               : maxed ? '<span class="tech-done">✔ Max</span>'
-              : `<button class="tech-buy" data-buytech="${t.id}" ${can?'':'disabled'}>🧬 ${fmt(cost)}</button>`}
+              : `<button class="tech-buy" data-buytech="${t.id}" ${can?'':'disabled'}><span class="tech-cost-chips">${costBadges}</span></button>`}
           </div>
         </div>`;
     }
@@ -3452,7 +3634,7 @@ async function boot() {
   }, 100);
 
   // Rafraîchir les panneaux moins souvent (perf)
-  setInterval(() => { renderGenerators(); renderTechs(); renderShop(); }, 500);
+  setInterval(() => { renderGenerators(); renderTechs(); renderShop(); if ($('#resources-modal').classList.contains('visible')) renderResourcesPanel(); }, 500);
   setInterval(() => { renderAchievements(); renderMinigames(); updateAgeBar(); if (window.Fishing && !Pond.isOpen()) Fishing.renderMare(); }, 1500);
 
   // Auto-save fréquent + points de sauvegarde robustes (mobile : pagehide/visibilitychange)
@@ -3559,6 +3741,27 @@ function bindUI() {
   // Check-in : ouvrir / fermer
   $('#open-checkin').addEventListener('click', () => { renderCheckin(); $('#checkin-modal').classList.add('visible'); });
   $('#checkin-close').addEventListener('click', () => $('#checkin-modal').classList.remove('visible'));
+
+  // Ressources : ouvrir / fermer / bascule simple-détaillé
+  $('#resources-open') && $('#resources-open').addEventListener('click', () => {
+    renderResourcesPanel();
+    $('#resources-modal').classList.add('visible');
+    state.resLastSeenCount = Object.keys(state.resSeen || {}).length;
+    const badge = $('#resources-badge'); if (badge) badge.hidden = true;
+  });
+  $('#resources-close') && $('#resources-close').addEventListener('click', () => $('#resources-modal').classList.remove('visible'));
+  $('#res-view-simple') && $('#res-view-simple').addEventListener('click', () => {
+    if (!state.settings) state.settings = {};
+    state.settings.resDetailed = false;
+    $('#res-view-simple').classList.add('active'); $('#res-view-detail').classList.remove('active');
+    renderResourcesPanel();
+  });
+  $('#res-view-detail') && $('#res-view-detail').addEventListener('click', () => {
+    if (!state.settings) state.settings = {};
+    state.settings.resDetailed = true;
+    $('#res-view-detail').classList.add('active'); $('#res-view-simple').classList.remove('active');
+    renderResourcesPanel();
+  });
 
   // Check-in interactions (délégation)
   $('#checkin-body').addEventListener('input', e => {
