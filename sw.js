@@ -2,10 +2,11 @@
    Met en cache la coquille de l'app pour un lancement instantané et un jeu hors-ligne.
    La progression est dans localStorage (indépendant du SW).
    Bump CACHE à chaque déploiement pour rafraîchir. */
-const CACHE = 'evolve-v3';
+const CACHE = 'evolve-v4';
 const SHELL = [
   './',
   './index.html',
+  './expansion.js?v=exp1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

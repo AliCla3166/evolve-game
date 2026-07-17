@@ -2502,7 +2502,11 @@ const PALIERS = [
   { n:19, ap:950,  name:'Poisson stellaire' },
   { n:20, ap:1000, name:'Poisson extraterrestre' },
 ];
-function currentPalier() { return Math.max(0, Math.min(20, Math.floor((state.agePoints||0) / 50))); }
+function currentPalier() {
+  const thr = (typeof ageThreshold==='function') ? ageThreshold() : 1000;
+  const step = thr / 20;   // 20 paliers visuels par âge, quel que soit le seuil
+  return Math.max(0, Math.min(20, Math.floor((state.agePoints||0) / step)));
+}
 
 /* ---------------------------------------------------------------------------
    50 AMÉLIORATIONS — inspirées des meilleurs idle (accuracy, luck, combo,
@@ -2628,13 +2632,14 @@ function buyFishUp(id) {
 
 function completedFamilies() {
   let done = 0;
+  const src = activePool();
   for (let r = 0; r < RARITIES.length; r++) {
-    const fam = CREATURES.filter(c => c.r === r);
-    if (fam.every(c => (state.collection[c.id]?.count || 0) > 0)) done++;
+    const fam = src.filter(c => c.r === r);
+    if (fam.length && fam.every(c => (state.collection[c.id]?.count || 0) > 0)) done++;
   }
   return done;
 }
-function uniqueCollected() { return Object.values(state.collection).filter(c => c.count > 0).length; }
+function uniqueCollected() { return activePool().filter(c => (state.collection[c.id]?.count||0) > 0).length; }
 
 /* ---------- Tirage de rareté & créature ---------- */
 function rollRarity() {
@@ -2651,8 +2656,13 @@ function rollRarity() {
   if (idx < m.rarityFloor) idx = m.rarityFloor;
   return idx;
 }
+function activePool() { return (typeof window!=='undefined' && window.POOL) ? window.POOL() : CREATURES; }
+function anyCreature(id) { return (typeof window!=='undefined' && window.findCreatureAny) ? window.findCreatureAny(id) : CREATURES.find(x=>x.id===id); }
 function rollCreature(rarityIdx) {
-  const pool = CREATURES.filter(c => c.r === rarityIdx);
+  const src = activePool();
+  let pool = src.filter(c => c.r === rarityIdx);
+  if (!pool.length) pool = src.filter(c => c.r <= rarityIdx);
+  if (!pool.length) pool = src;
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -2662,6 +2672,7 @@ function registerCatch(creature, perfect) {
   const m = fMods();
   const slot = state.collection[creature.id] || (state.collection[creature.id] = { count:0, best:0 });
   slot.count++;
+  if (typeof window!=='undefined' && window.Museum) window.Museum.record((state.ageId||1), creature.id);
   state.fishing.catches++;
   // combo
   state.fishing.combo++;
@@ -2690,7 +2701,7 @@ function addAgePoints(n) {
 function dissolveCreature(id) {
   fEnsure();
   const slot = state.collection[id]; if (!slot || slot.count <= 0) return null;
-  const c = CREATURES.find(x => x.id === id); const rar = RARITIES[c.r];
+  const c = anyCreature(id); const rar = RARITIES[c.r];
   const m = fMods();
   slot.count--;
   state.fishing.dissolved++;
@@ -2705,7 +2716,7 @@ function dissolveCreature(id) {
 function sellCreature(id, all) {
   fEnsure();
   const slot = state.collection[id]; if (!slot || slot.count <= 0) return null;
-  const c = CREATURES.find(x => x.id === id); const rar = RARITIES[c.r];
+  const c = anyCreature(id); const rar = RARITIES[c.r];
   const m = fMods();
   const qty = all ? slot.count : 1;
   const per = Math.max(1, Math.round(rar.sellAP * c.val * m.sellMult));
@@ -2850,7 +2861,7 @@ function nearestPalierAsset(p){ // si palier exact absent, cherche le plus proch
    ============================================================================ */
 let SWIMMERS = [];
 function syncSwimmers() {
-  const uniq = CREATURES.filter(c => (state.collection?.[c.id]?.count || 0) > 0);
+  const uniq = activePool().filter(c => (state.collection?.[c.id]?.count || 0) > 0);
   const want = Math.min(14, uniq.length);
   // ajoute
   while (SWIMMERS.length < want) {
@@ -3092,7 +3103,8 @@ const Pond = (() => {
     ctx.fillStyle='rgba(223,245,240,0.9)'; ctx.font=`${14*dpr}px 'Exo 2',sans-serif`; ctx.textAlign='center';
     ctx.fillText(msg, W/2, H*0.075);
     ctx.fillStyle='rgba(255,224,138,0.95)'; ctx.font=`bold ${16*dpr}px 'JetBrains Mono',monospace`;
-    ctx.fillText(`⭐ ${fmt(state.agePoints||0)}/100   ·   Combo ×${state.fishing.combo}`, W/2, H*0.13);
+    const _thr=(typeof ageThreshold==='function')?ageThreshold():1000;
+    ctx.fillText(`⭐ ${fmt(state.agePoints||0)}/${fmt(_thr)}   ·   Combo ×${state.fishing.combo}`, W/2, H*0.13);
     ctx.textAlign='start';
   }
   function drawFlash() {
@@ -3208,20 +3220,22 @@ const Fishing = (() => {
     const el = $('#panel-fishing'); if (!el) return;
     fEnsure();
     const p = currentPalier();
-    const pInfo = p>0 ? PALIERS[Math.min(19,p-1)] : {name:'Amas primordial'};
+    const pName = (typeof palierName==='function') ? palierName(Math.max(1,p)) : 'Amas primordial';
     const uniq = uniqueCollected();
+    const poolN = activePool().length;
     const thr = (typeof ageThreshold==='function') ? ageThreshold() : 1000;
+    const ft = (typeof window!=='undefined' && window.FISH_THEME) ? window.FISH_THEME() : { pond:'La Mare primordiale', verb:'Pêcher', noun:'créature' };
     let html = `
       <div class="mare-hero">
-        <button id="open-pond" class="mare-play">🎣 Pêcher dans la Mare</button>
+        <button id="open-pond" class="mare-play">🎣 ${ft.verb} — ${ft.pond}</button>
         <div class="mare-stats">
           <div><b>${fmt(state.agePoints||0)}</b>/${fmt(thr)} ⭐ · Palier ${p}/20</div>
-          <div class="mare-sub">${pInfo.name} · ${uniq}/${CREATURES.length} créatures · record combo ×${state.fishing.bestCombo}</div>
-          <div class="mare-sub">🎣 <b>${state.fishTokens||0}</b> jeton${(state.fishTokens||0)===1?'':'s'} de pêche disponible${(state.fishTokens||0)===1?'':'s'}</div>
+          <div class="mare-sub">${pName} · ${uniq}/${poolN} ${ft.noun}s · record combo ×${state.fishing.bestCombo}</div>
+          <div class="mare-sub">🎣 <b>${state.fishTokens||0}</b> jeton${(state.fishTokens||0)===1?'':'s'} disponible${(state.fishTokens||0)===1?'':'s'}</div>
         </div>
-        <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/${CREATURES.length})</button>
+        <button id="open-collection" class="mare-collec">📖 Collection (${uniq}/${poolN})</button>
       </div>
-      <div class="mare-note">Chaque capture donne des ⭐ Points d'Âge (${fmt(thr)} = Âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur le poisson jusqu’à remplir la jauge — compte 10 à 60s selon la rareté. Chaque lancer de canne consomme 1 🎣 jeton de pêche, achetable à la Boutique avec tes 💠 Points Bonus (onglet Boutique → "Jeton de pêche") : ta seule source de 💠 est le check-in de tes habitudes réelles, donc ta pêche du jour est limitée par tes habitudes validées — une journée bien remplie donne de quoi t'offrir une dizaine de parties. Les rares sont volontairement très durs au début — améliore ta pêche ci-dessous (ADN + créatures dissoutes) pour les rendre attrapables.</div>
+      <div class="mare-note">La Mare persiste à tous les âges, avec à chaque fois un contexte différent : ici tu ${ft.verb.toLowerCase()} des <b>${ft.noun}s</b> de l'âge ${curAge?curAge().name:''}. Chaque capture donne des ⭐ Points d'Âge (${fmt(thr)} = âge suivant). Repère la couleur (= rareté), puis <b>maintiens</b> pour garder ta barre sur la cible jusqu'à remplir la jauge. Chaque lancer consomme 1 🎣 jeton, acheté à la Boutique avec tes 💠 Points Bonus (issus de tes habitudes réelles). Tes collections passées sont conservées au <b>Musée</b>.</div>
       <div class="fup-list">`;
     for (const cat of Object.keys(FISH_CATS)) {
       const ups = FISH_UP.filter(u=>u.cat===cat);
@@ -3250,7 +3264,7 @@ const Fishing = (() => {
     const el = $('#collection-body'); if (!el) return;
     fEnsure();
     let grid = `<div class="col-grid" id="collection-grid">`;
-    for (const c of CREATURES) {
+    for (const c of activePool()) {
       const slot = state.collection[c.id]; const got = slot && slot.count>0;
       const rar = RARITIES[c.r];
       grid += `<div class="col-cell ${got?'got':'locked'} ${selected===c.id?'sel':''}" data-c="${c.id}" style="--rc:${rar.color}">
@@ -3263,7 +3277,7 @@ const Fishing = (() => {
     // barre d'action
     let act = `<div id="collection-actions" class="col-actions">`;
     if (selected && state.collection[selected]?.count>0) {
-      const c = CREATURES.find(x=>x.id===selected); const rar=RARITIES[c.r]; const m=fMods();
+      const c = anyCreature(selected); const rar=RARITIES[c.r]; const m=fMods();
       const effR = RARITIES[Math.min(5,c.r+m.refine)];
       const sellPer = Math.max(1, Math.round(rar.sellAP*c.val*m.sellMult));
       const disMult = (effR.dissolve*c.val*m.dissolveMult);
@@ -3349,11 +3363,38 @@ const AGES = [
              'Artisan','Guérisseur','Conteur','Chaman','Chef de clan',
              'Danseur rituel','Peintre de grottes','Forgeron d’os','Gardien du feu','Sage',
              'Bâtisseur de totem','Prophète','Fondateur','Meneur','Esprit ancestral'] },
+  { id:4, name:'Médiéval', subtitle:'L’agriculture, l’artisanat et la foi', hue:40, resIcon:'🛠️', resName:'Matériaux',
+    paliers:['Hameau','Ferme','Moulin','Forge','Marché','Chapelle','Muraille','Bourg','Guilde','Donjon',
+             'Cathédrale','Beffroi','Citadelle','Université','Cour royale','Cité marchande','Capitale','Royaume','Couronne','Empire naissant'] },
+  { id:5, name:'Empire', subtitle:'La culture, l’expansion, les monuments', hue:48, resIcon:'👑', resName:'Influence',
+    paliers:['Colonie','Route pavée','Aqueduc','Forum','Amphithéâtre','Temple','Légion','Province','Sénat','Colisée',
+             'Panthéon','Voie triomphale','Métropole','Grande bibliothèque','Phare','Empire','Dynastie','Pax','Apogée','Merveille du monde'] },
+  { id:6, name:'Société globale', subtitle:'L’industrie, la science, les réseaux', hue:200, resIcon:'🔬', resName:'Science',
+    paliers:['Usine','Chemin de fer','Télégraphe','Gratte-ciel','Centrale','Aéroport','Métropole','Réseau','Bourse','Vallée du silicium',
+             'Satellite','Internet','Mégapole','Fusion','IA naissante','Nation-monde','Fédération','Singularité proche','Civilisation type I','Conscience globale'] },
+  { id:7, name:'Interplanétaire', subtitle:'Colonies et terraformation', hue:190, resIcon:'⚡', resName:'Énergie',
+    paliers:['Station orbitale','Base lunaire','Colonie martienne','Ascenseur spatial','Dôme','Terraformation','Mine d’astéroïde','Cité orbitale','Flotte','Anneau',
+             'Colonie de Vénus','Sphère intérieure','Système colonisé','Réseau planétaire','Gouvernance solaire','Type I+','Berceau étendu','Diaspora','Cœur du système','Empire solaire'] },
+  { id:8, name:'Interstellaire', subtitle:'Voyage FTL et premier contact', hue:266, resIcon:'🌠', resName:'Exotique',
+    paliers:['Vaisseau-monde','Portail FTL','Colonie exo','Étoile domestiquée','Sphère de Dyson','Amas colonisé','Contact','Fédération stellaire','Route des étoiles','Nébuleuse-cité',
+             'Forge stellaire','Flotte-monde','Empire stellaire','Réseau FTL','Conscience distribuée','Type II','Pouvoir stellaire','Berceau galactique','Bras spiral','Cœur d’étoiles'] },
+  { id:9, name:'Intergalactique', subtitle:'Conscience de réseau, méga-structures', hue:286, resIcon:'🌌', resName:'Conscience',
+    paliers:['Pont galactique','Méga-structure','Esprit-ruche','Réseau de consciences','Galaxie unifiée','Trou de ver stable','Amas domestiqué','Nœud cosmique','Filament','Type III',
+             'Voile galactique','Chœur des mondes','Empire intergalactique','Conscience-amas','Toile cosmique','Architecte','Vide apprivoisé','Superstructure','Cœur du réel','Seuil divin'] },
+  { id:10, name:'Divinité', subtitle:'Transcendance — la fin du cycle', hue:50, resIcon:'✨', resName:'Essence',
+    paliers:['Étincelle','Verbe','Souffle','Loi','Forme','Lumière','Cosmos-corps','Œil','Main créatrice','Spirale infinie',
+             'Cycle','Genèse','Omniscience','Omniprésence','Éternité','Nouveau Big Bang','Démiurge','Panthéon','Absolu','Transcendance'] },
 ];
 function curAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1)-1)]; }
 function nextAge() { return AGES[Math.min(AGES.length-1, (state.ageId||1))]; }
 function palierName(n) { const a=curAge(); return (a.paliers[n-1]) || ('Palier '+n); }
-function ageThreshold() { return (typeof TUNING!=='undefined' ? TUNING.agePointThreshold : 1000); }
+// Seuil de ⭐ pour changer d'âge — croissant (durées croissantes, pensé ~1 an en jeu optimal).
+// Âge 1 = 1000 → Âge 10 ≈ 100k. La montée en puissance des mini-jeux et expéditions suit.
+function ageThreshold() {
+  const base = (typeof TUNING!=='undefined' ? TUNING.agePointThreshold : 1000);
+  const age = (typeof state!=='undefined' && state.ageId) ? state.ageId : 1;
+  return Math.round(base * Math.pow(1.7, age-1));
+}
 function canAscend() { return (state.agePoints||0) >= ageThreshold(); }
 
 function ensureMeta() {
@@ -3385,7 +3426,8 @@ function ascend() {
   state.fishUp = {};                      // on reconstruit l'arbre de pêche (bible)
   if (state.fishing) { state.fishing.combo = 0; state.fishing.lastPalier = 0; state.fishing.frenzyEnd = 0; }
   // CONSERVÉ : collection, seeds, pb, achievements, meta, stats, fishing.dissolved/disRarityMax,
-  //            streak/check-in — la vie continue, plus forte.
+  //            streak/check-in, MUSÉE, progression de guerre par âge — la vie continue, plus forte.
+  if (typeof window!=='undefined' && window.expansionOnAscend) window.expansionOnAscend();
   state.lastTick = Date.now();
   return { from, to, mult: state.meta.ascendMult };
 }
@@ -3834,6 +3876,7 @@ const Dev = (() => {
 })();
 
 </script>
+<script src="expansion.js?v=exp1"></script>
 <script>
 /* ============================================================================
    EVOLVE — main.js
