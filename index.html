@@ -62,8 +62,8 @@ button{font-family:inherit;cursor:pointer;color:var(--txt);border:none;backgroun
 .hud-title{font-weight:800;letter-spacing:.14em;color:var(--accent);font-size:18px}
 .hud-age{font-size:11px;color:var(--muted);margin-top:3px}
 #dev-mode-badge{margin-top:4px;display:inline-flex;align-items:center;gap:5px;background:rgba(255,183,77,.18);
-  border:1px solid rgba(255,183,77,.5);color:#ffb74d;font-size:10px;font-weight:800;letter-spacing:.05em;
-  padding:2px 8px;border-radius:999px;cursor:pointer;animation:devPulse 2.4s infinite}
+  border:1px solid rgba(255,183,77,.5);color:#ffb74d;font-size:9.5px;font-weight:800;letter-spacing:.03em;
+  white-space:nowrap;padding:3px 9px;border-radius:999px;cursor:pointer;animation:devPulse 2.4s infinite}
 @keyframes devPulse{0%,100%{box-shadow:0 0 0 rgba(255,183,77,0)}50%{box-shadow:0 0 10px rgba(255,183,77,.5)}}
 body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
 .hud-res{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
@@ -107,12 +107,12 @@ body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
 #agebar-label{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.03em}
 
 /* ---------- Bottom nav (accès aux menus d'amélioration) ---------- */
-#bottom-nav{position:relative;flex:0 0 auto;display:flex;gap:6px;z-index:56;
+#bottom-nav{position:relative;flex:0 0 auto;display:flex;flex-wrap:wrap;gap:6px;z-index:56;
   padding:8px calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
-  background:linear-gradient(0deg,rgba(3,12,20,.97),rgba(3,12,20,.8));border-top:1px solid var(--line);backdrop-filter:blur(10px);
-  overflow-x:auto;scrollbar-width:none}
-#bottom-nav::-webkit-scrollbar{display:none}
-.bnav-btn{position:relative;flex:1;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:linear-gradient(0deg,rgba(3,12,20,.97),rgba(3,12,20,.8));border-top:1px solid var(--line);backdrop-filter:blur(10px)}
+/* Toujours en flux/wrap (jamais de scroll horizontal caché) : tous les boutons restent visibles,
+   quitte à passer sur 2 lignes plutôt que de laisser un bouton hors-écran injoignable. */
+.bnav-btn{position:relative;flex:1 1 22%;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;
   padding:9px 4px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:10px;font-weight:700;color:var(--muted)}
 .bnav-btn .bnav-ic{font-size:19px}
 .bnav-btn:active{transform:scale(.95)}
@@ -124,8 +124,10 @@ body.dev-active #hud{border-bottom-color:rgba(255,183,77,.4)}
 #side-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
 #side-head h2{font-size:15px;font-weight:700;color:var(--accent)}
 #side-close{font-size:18px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;width:32px;height:32px}
+/* Toujours en flux/wrap : avec 8 onglets (Empire/Musée compris) tout doit rester visible et
+   cliquable sans scroll horizontal caché, quitte à passer sur 2 lignes. */
 #nav{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.nav-btn{flex:1;min-width:70px;font-size:12px;font-weight:600;padding:9px 6px;border-radius:10px;color:var(--muted);border:1px solid transparent}
+.nav-btn{flex:1 1 30%;min-width:70px;font-size:12px;font-weight:600;padding:9px 6px;border-radius:10px;color:var(--muted);border:1px solid transparent}
 .nav-btn.active{color:var(--accent);background:var(--card);border-color:var(--line)}
 .panels{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:10px}
 .panel{display:none} .panel.active{display:block;animation:fade .25s}
@@ -346,9 +348,10 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   #agebar{bottom:8px}
   #diorama-hint{top:8px;font-size:10px;opacity:.75}
   .cta-checkin{top:auto;bottom:52px;font-size:14px;padding:10px 18px}
-  #nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none}
-  #nav::-webkit-scrollbar{display:none}
-  .nav-btn{flex:0 0 auto;min-width:auto;padding:9px 12px;white-space:nowrap}
+  /* Sur mobile aussi : on garde le wrap (2-3 lignes) plutôt qu'un scroll horizontal qui
+     cache des onglets hors-écran (Empire/Musée notamment). */
+  #nav{flex-wrap:wrap}
+  .nav-btn{flex:1 1 30%;min-width:0;padding:9px 4px;font-size:11px}
   #hud{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
   .panels{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
   .modal{padding:0;place-items:stretch}
@@ -360,6 +363,8 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 @media(display-mode:standalone){
   #hud{padding-top:env(safe-area-inset-top);height:calc(58px + env(safe-area-inset-top))}
   #stage{top:calc(58px + env(safe-area-inset-top))}
+  #hud-bars{top:calc(58px + env(safe-area-inset-top))}
+  #side{inset:calc(58px + env(safe-area-inset-top)) 0 0 0}
 }
 
 /* ============================ MINI-JEU DE PÊCHE ============================ */
@@ -441,11 +446,16 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
 @keyframes pondGlow{0%,100%{box-shadow:0 0 6px rgba(62,230,196,.35);border-color:var(--line)}50%{box-shadow:0 0 20px rgba(62,230,196,.85);border-color:rgba(62,230,196,.7)}}
 .pond-badge{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#1a1200;font-size:10px;font-weight:800;border-radius:999px;min-width:16px;height:16px;line-height:16px;padding:0 3px}
 
-/* ---------- Ressources de production : cadre semi-transparent, sous le header ---------- */
-#hud-extra-res{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;cursor:pointer;pointer-events:auto;
+/* ---------- Ressources de production : cadre semi-transparent, sous le header ----------
+   Toujours UNE seule ligne, qui défile horizontalement si besoin, plutôt que d'empiler des
+   lignes qui font grossir le header (et finissaient par déborder sur le reste de l'écran). */
+#hud-extra-res{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;justify-content:flex-start;cursor:pointer;pointer-events:auto;
   max-width:94vw;background:rgba(3,12,20,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border:1px solid var(--line);border-radius:14px;padding:6px 10px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#hud-extra-res::-webkit-scrollbar{display:none}
 #hud-extra-res:empty{display:none;padding:0;border:none}
+.hud-res-chip{flex:0 0 auto}
 .hud-res-chip{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:12px;font-weight:600}
 .hud-res-chip .hrc-ic{width:16px;height:16px;display:flex;align-items:center;justify-content:center}
 .hud-res-chip .hrc-ic img{width:100%;height:100%;object-fit:contain}
@@ -497,7 +507,7 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
   <div class="hud-left">
     <div class="hud-title">EVOLVE</div>
     <div class="hud-age">Âge 1 · Cellule</div>
-    <div id="dev-mode-badge" title="Cliquer pour revenir à ton compte perso" hidden>🧪 MODE DEV</div>
+    <div id="dev-mode-badge" title="Toucher pour revenir à ton compte perso" hidden>🧪 MODE DEV · toucher pour revenir</div>
   </div>
   <div class="hud-res">
     <div class="res res-dna" title="ADN — ressource-mère">
@@ -545,57 +555,60 @@ input, textarea, select { user-select:text; -webkit-user-select:text; touch-acti
     <button class="bnav-btn" data-panel="minigames">🎮<span>Mini-jeux</span></button>
     <button class="bnav-btn" data-panel="achievements">🏆<span>Succès</span></button>
   </nav>
-
-  <section id="side">
-    <div id="side-head"><h2 id="side-title">🧫 Organites</h2><button id="side-close">✕</button></div>
-    <nav id="nav">
-      <button class="nav-btn active" data-panel="generators">🧫 Organites</button>
-      <button class="nav-btn" data-panel="fishing">🎣 Mare</button>
-      <button class="nav-btn" data-panel="techs">🔬 Recherche</button>
-      <button class="nav-btn" data-panel="shop">💠 Boutique</button>
-      <button class="nav-btn" data-panel="minigames">🎮 Mini-jeux</button>
-      <button class="nav-btn" data-panel="achievements">🏆 Succès</button>
-    </nav>
-
-    <div class="panels">
-      <div class="panel active" id="panel-generators-wrap">
-        <div class="panel-head">
-          <h2>🧫 Organites</h2>
-          <select id="buymode" title="Quantité par achat">
-            <option value="1">×1</option><option value="10">×10</option>
-            <option value="100">×100</option><option value="max">Max</option>
-          </select>
-        </div>
-        <div id="panel-generators"></div>
-      </div>
-
-      <div class="panel" id="panel-fishing-wrap">
-        <div class="panel-head"><h2>🎣 La Mare primordiale</h2></div>
-        <div id="panel-fishing"></div>
-      </div>
-
-      <div class="panel" id="panel-techs-wrap">
-        <div class="panel-head"><h2>🔬 Recherche technologique</h2></div>
-        <div id="panel-techs"></div>
-      </div>
-
-      <div class="panel" id="panel-shop-wrap">
-        <div class="panel-head"><h2>💠 Boutique de boosts</h2></div>
-        <div id="panel-shop"></div>
-      </div>
-
-      <div class="panel" id="panel-minigames-wrap">
-        <div class="panel-head"><h2>🎮 Mini-jeux</h2></div>
-        <div id="panel-minigames"></div>
-      </div>
-
-      <div class="panel" id="panel-achievements-wrap">
-        <div class="panel-head"><h2>🏆 Succès</h2></div>
-        <div id="panel-achievements"></div>
-      </div>
-    </div>
-  </section>
 </main>
+
+<!-- IMPORTANT : #side vit HORS de #stage (sibling direct du body), sinon son z-index
+     reste piégé sous la pile d'empilement de #stage et se fait recouvrir par le header
+     et la barre de ressources dès qu'ils dépassent 58px de haut (bug corrigé ici). -->
+<section id="side">
+  <div id="side-head"><h2 id="side-title">🧫 Organites</h2><button id="side-close">✕</button></div>
+  <nav id="nav">
+    <button class="nav-btn active" data-panel="generators">🧫 Organites</button>
+    <button class="nav-btn" data-panel="fishing">🎣 Mare</button>
+    <button class="nav-btn" data-panel="techs">🔬 Recherche</button>
+    <button class="nav-btn" data-panel="shop">💠 Boutique</button>
+    <button class="nav-btn" data-panel="minigames">🎮 Mini-jeux</button>
+    <button class="nav-btn" data-panel="achievements">🏆 Succès</button>
+  </nav>
+
+  <div class="panels">
+    <div class="panel active" id="panel-generators-wrap">
+      <div class="panel-head">
+        <h2>🧫 Organites</h2>
+        <select id="buymode" title="Quantité par achat">
+          <option value="1">×1</option><option value="10">×10</option>
+          <option value="100">×100</option><option value="max">Max</option>
+        </select>
+      </div>
+      <div id="panel-generators"></div>
+    </div>
+
+    <div class="panel" id="panel-fishing-wrap">
+      <div class="panel-head"><h2>🎣 La Mare primordiale</h2></div>
+      <div id="panel-fishing"></div>
+    </div>
+
+    <div class="panel" id="panel-techs-wrap">
+      <div class="panel-head"><h2>🔬 Recherche technologique</h2></div>
+      <div id="panel-techs"></div>
+    </div>
+
+    <div class="panel" id="panel-shop-wrap">
+      <div class="panel-head"><h2>💠 Boutique de boosts</h2></div>
+      <div id="panel-shop"></div>
+    </div>
+
+    <div class="panel" id="panel-minigames-wrap">
+      <div class="panel-head"><h2>🎮 Mini-jeux</h2></div>
+      <div id="panel-minigames"></div>
+    </div>
+
+    <div class="panel" id="panel-achievements-wrap">
+      <div class="panel-head"><h2>🏆 Succès</h2></div>
+      <div id="panel-achievements"></div>
+    </div>
+  </div>
+</section>
 
 <div id="checkin-modal" class="modal">
   <div class="modal-box">
@@ -3423,6 +3436,12 @@ function ascend() {
   state.agePoints = 0;
   state.boosts = [];
   state.perfectBoostEndsAt = 0;
+  // Les ressources secondaires (protéines, ATP…) sont spécifiques à l'Âge 1 et font partie
+  // du "run" comme les organites/technos : sans ce reset elles restaient affichées pour
+  // toujours dans le HUD après une ascension, avec des montants figés qui n'ont plus de sens.
+  state.res = {};
+  state.resSeen = { dna: true };
+  state.resLastSeenCount = 1;
   state.fishUp = {};                      // on reconstruit l'arbre de pêche (bible)
   if (state.fishing) { state.fishing.combo = 0; state.fishing.lastPalier = 0; state.fishing.frenzyEnd = 0; }
   // CONSERVÉ : collection, seeds, pb, achievements, meta, stats, fishing.dissolved/disRarityMax,
@@ -3650,6 +3669,46 @@ window.Cloud = Cloud;
    time warp, cheats. Ouvert par le bouton ⚙︎ ou la séquence clavier "dev".
    ============================================================================ */
 
+/* Boîte de dialogue de confirmation maison. window.confirm() natif n'est pas fiable dans une
+   PWA installée sur Android (certains WebView l'ignorent silencieusement) : cette modale
+   maison garantit que "Passer en mode Dev" / "Revenir au mode Perso" fonctionnent toujours. */
+function evolveConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    let modal = document.getElementById('confirm-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'confirm-modal';
+      modal.className = 'modal';
+      modal.innerHTML = `<div class="modal-box small">
+        <div class="modal-head"><h2 id="confirm-modal-title">Confirmation</h2></div>
+        <p id="confirm-modal-text" style="color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:16px;white-space:pre-line;text-align:left"></p>
+        <div class="ascend-btns">
+          <button id="confirm-modal-cancel">Annuler</button>
+          <button id="confirm-modal-ok" class="btn-primary">Confirmer</button>
+        </div>
+      </div>`;
+      document.body.appendChild(modal);
+    }
+    document.getElementById('confirm-modal-text').textContent = message;
+    document.getElementById('confirm-modal-ok').textContent = opts.okLabel || 'Confirmer';
+    document.getElementById('confirm-modal-cancel').textContent = opts.cancelLabel || 'Annuler';
+    modal.classList.add('visible');
+    const okBtn = document.getElementById('confirm-modal-ok');
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+    function cleanup(result) {
+      modal.classList.remove('visible');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
 const Dev = (() => {
   let open = false;
 
@@ -3745,11 +3804,13 @@ const Dev = (() => {
     // Validation dimensions
     if (dim.w !== wantW || dim.h !== wantH) {
       const msg = `Dimensions attendues ${wantW}×${wantH}px, reçu ${dim.w}×${dim.h}px.`;
-      if (!confirm(`⚠️ ${msg}\n\nImporter quand même ?`)) { input.value = ''; return; }
+      const ok = await evolveConfirm(`⚠️ ${msg}\n\nImporter quand même ?`, { okLabel: 'Importer quand même' });
+      if (!ok) { input.value = ''; return; }
     }
     // Validation alpha (PNG-32) pour les non-fonds
     if (!isBg && file.type !== 'image/png') {
-      if (!confirm(`⚠️ Cet asset devrait être un PNG avec canal alpha (transparence). Fichier ${file.type}. Importer quand même ?`)) { input.value=''; return; }
+      const ok = await evolveConfirm(`⚠️ Cet asset devrait être un PNG avec canal alpha (transparence). Fichier ${file.type}. Importer quand même ?`, { okLabel: 'Importer quand même' });
+      if (!ok) { input.value=''; return; }
     }
     await AssetStore.put(slot, dataUrl);
     ASSET_CACHE[slot] = dataUrl;
@@ -3849,16 +3910,20 @@ const Dev = (() => {
 
     $('#dev-export').addEventListener('click', doExport);
     $('#dev-import-btn').addEventListener('click', doImport);
-    $('#dev-reset').addEventListener('click', () => { if (confirm('Effacer toute la progression ? (les assets importés sont conservés)')) { hardReset(); renderAll(); toggle(false); toast('Nouvelle partie','');} });
+    $('#dev-reset').addEventListener('click', async () => {
+      const ok = await evolveConfirm('Effacer toute la progression ? (les assets importés sont conservés)', { okLabel: 'Effacer' });
+      if (ok) { hardReset(); renderAll(); toggle(false); toast('Nouvelle partie',''); }
+    });
 
     // Bascule de profil : compte perso (cloud) <-> Dev (cheats, local uniquement)
     $('#dev-profile-main') && $('#dev-profile-main').addEventListener('click', () => {
       if (!isDevProfile()) return;
       switchProfile('main');
     });
-    $('#dev-profile-dev') && $('#dev-profile-dev').addEventListener('click', () => {
+    $('#dev-profile-dev') && $('#dev-profile-dev').addEventListener('click', async () => {
       if (isDevProfile()) return;
-      if (confirm('Passer au profil Dev ? Ta partie actuelle sera clonée comme point de départ ; les cheats ne toucheront jamais ton compte perso ni le cloud.')) switchProfile('dev');
+      const ok = await evolveConfirm('Passer au profil Dev ? Ta partie actuelle sera clonée comme point de départ ; les cheats ne toucheront jamais ton compte perso ni le cloud.', { okLabel: 'Passer en Dev' });
+      if (ok) switchProfile('dev');
     });
 
     $$('[data-warp]').forEach(b => b.addEventListener('click', () => timeWarp(parseFloat(b.dataset.warp))));
@@ -3890,7 +3955,10 @@ async function boot() {
   const devBadge = document.getElementById('dev-mode-badge');
   if (devBadge) {
     devBadge.hidden = !devActive;
-    devBadge.addEventListener('click', () => { if (confirm('Revenir à ton compte perso ?')) switchProfile('main'); });
+    devBadge.addEventListener('click', async () => {
+      const ok = await evolveConfirm('Revenir à ton compte perso ?', { okLabel: 'Revenir en Perso' });
+      if (ok) switchProfile('main');
+    });
   }
 
   await preloadAssets();
